@@ -1,293 +1,290 @@
 {% extends "base.html" %}
 
-{% block title %}Creatora AI — AI Content Creator Marketplace | Create. Connect. Collaborate.{% endblock %}
+{% block title %}Creatora AI — Create. Connect. Collaborate.{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-gradient text-center">
-  <div class="container">
-    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-4 glass-card border-glow">
-      <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> AI-Powered</span>
-      <span class="small text-white-50">Connecting Generative Artists & World-Class Brands</span>
-    </div>
+<div class="container py-4 py-md-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7 col-sm-10 text-center">
+      
+      <!-- Icon, Title & Tagline -->
+      <div class="mb-4">
+        <img src="{{ url_for('static', filename='images/creatora-logo.jpg') }}" alt="Creatora AI"
+             style="width: 84px; height: 84px; border-radius: 22px; object-fit: cover; box-shadow: 0 0 36px rgba(167,139,250,0.5);"
+             class="mb-3 animate-float">
+        <h1 class="fw-bold text-white mb-2" style="font-family: var(--font-heading); letter-spacing: -0.02em;">
+          Creatora<span style="color: var(--accent-cyan);">AI</span>
+        </h1>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill glass-card border-glow mb-2">
+          <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> AI-Powered</span>
+          <span class="fw-bold text-white small" style="letter-spacing: 0.08em;">Create. Connect. Collaborate.</span>
+        </div>
+        <p class="text-muted small mb-0">Where Elite AI Creators &amp; Visionary Brands Collaborate</p>
+      </div>
 
-    <h1 class="hero-title">
-      Where Elite AI Creators &amp; <br>
-      <span style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Visionary Brands</span> Collaborate
-    </h1>
-
-    <p class="hero-subtitle">
-      Showcase generative video and photorealistic artwork. Discover specialized creators with explainable AI matching, verified commercial licensing, and structured milestone workspaces.
-    </p>
-
-    <div class="d-flex flex-wrap justify-content-center gap-3">
-      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-primary-glow px-4 py-3 fs-5" id="heroExploreCreatorsBtn">
-        <i class="bi bi-search"></i> Explore Creators
-      </a>
-      {% if current_user.is_authenticated and current_user.is_brand %}
-        <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-glass px-4 py-3 fs-5" id="heroAIBriefBtn">
-          <i class="bi bi-magic text-warning"></i> AI Brief Builder
-        </a>
+      {% if current_user.is_authenticated %}
+      <!-- Authenticated User State -->
+      <div class="glass-card p-4 p-md-5 border-glow text-center shadow-lg">
+        <img src="{{ current_user.avatar_url or url_for('static', filename='images/default-avatar.png') }}"
+             class="rounded-circle mb-3 object-fit-cover border border-2 border-primary" style="width: 76px; height: 76px;" alt="Avatar">
+        <h4 class="text-white fw-bold mb-1">
+          Welcome back, 
+          {% if current_user.is_creator and current_user.creator_profile %}
+            {{ current_user.creator_profile.display_name }}
+          {% elif current_user.is_brand and current_user.brand_profile %}
+            {{ current_user.brand_profile.company_name }}
+          {% else %}
+            {{ current_user.email.split('@')[0] }}
+          {% endif %}!
+        </h4>
+        <p class="text-muted small mb-4">Signed in as <span class="badge badge-creatora badge-primary-soft text-uppercase">{{ current_user.role }}</span></p>
+        <div class="d-grid gap-2">
+          {% if current_user.is_creator %}
+            <a href="{{ url_for('creator.dashboard') }}" class="btn btn-primary-glow py-2"><i class="bi bi-speedometer2 me-1"></i> Creator Dashboard</a>
+            <a href="{{ url_for('studio.video_studio') }}" class="btn btn-glass py-2"><i class="bi bi-camera-reels me-1"></i> Video Studio</a>
+          {% elif current_user.is_brand %}
+            <a href="{{ url_for('brand.dashboard') }}" class="btn btn-primary-glow py-2"><i class="bi bi-speedometer2 me-1"></i> Brand Dashboard</a>
+            <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass py-2"><i class="bi bi-plus-circle me-1"></i> Post Campaign Brief</a>
+          {% elif current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary-glow py-2"><i class="bi bi-shield-lock me-1"></i> Admin Center</a>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm mt-2"><i class="bi bi-box-arrow-right me-1"></i> Sign Out</a>
+        </div>
+      </div>
       {% else %}
-        <a href="{{ url_for('auth.register') }}" class="btn btn-glass px-4 py-3 fs-5" id="heroJoinMarketplaceBtn">
-          <i class="bi bi-sparkles text-info"></i> Join as Creator or Brand
-        </a>
+      <!-- Unauthenticated Starting Card: Tabbed Login & Register -->
+      <div class="glass-card p-4 p-md-4 border-glow shadow-lg text-start" id="startingAuthCard" style="backdrop-filter: blur(24px);">
+        <!-- Tab Switcher -->
+        <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-pill bg-dark bg-opacity-75 border border-secondary border-opacity-25" id="startAuthTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-semibold py-2" id="start-login-tab" data-bs-toggle="pill" data-bs-target="#start-login-pane" type="button" role="tab" aria-controls="start-login-pane" aria-selected="true">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-semibold py-2" id="start-register-tab" data-bs-toggle="pill" data-bs-target="#start-register-pane" type="button" role="tab" aria-controls="start-register-pane" aria-selected="false">
+              <i class="bi bi-person-plus me-1"></i> Register
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="startAuthTabContent">
+          <!-- 1. LOGIN TAB -->
+          <div class="tab-pane fade show active" id="start-login-pane" role="tabpanel" aria-labelledby="start-login-tab">
+            <div class="text-center mb-3">
+              <h4 class="fw-bold text-white mb-1">Welcome Back</h4>
+              <p class="text-muted small mb-0">Sign in to access your creative workspace</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" id="startLoginForm">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+              <div class="mb-3">
+                <label for="startLoginEmail" class="form-label small text-muted">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-envelope"></i></span>
+                  <input type="email" class="form-control" id="startLoginEmail" name="email" placeholder="name@example.com" required autofocus>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="startLoginPassword" class="form-label small text-muted mb-0">Password</label>
+                  <a href="{{ url_for('auth.forgot_password') }}" class="small text-info text-decoration-none" style="font-size: 0.78rem;">Forgot password?</a>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-key"></i></span>
+                  <input type="password" class="form-control" id="startLoginPassword" name="password" placeholder="••••••••" required>
+                  <button class="btn btn-outline-secondary border-secondary text-muted" type="button" onclick="togglePasswordVisibility('startLoginPassword', this)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="startRememberMe" name="remember">
+                <label class="form-check-label small text-muted" for="startRememberMe">Remember this browser</label>
+              </div>
+
+              <button type="submit" class="btn btn-primary-glow w-100 py-2 fw-bold" id="startSubmitLoginBtn">
+                Sign In to Creatora <i class="bi bi-box-arrow-in-right ms-1"></i>
+              </button>
+            </form>
+
+            <!-- 1-Click Demo Login Shortcut -->
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 text-center">
+              <div class="small text-muted mb-2" style="font-size: 0.76rem;">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Instant 1-Click Demo Logins:
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-glass btn-sm flex-fill" style="font-size: 0.78rem;" onclick="fillDemoLogin('elena.ai@creatora.ai', 'CreatorPass123!')">
+                  <i class="bi bi-stars text-warning me-1"></i>Creator
+                </button>
+                <button type="button" class="btn btn-glass btn-sm flex-fill" style="font-size: 0.78rem;" onclick="fillDemoLogin('contact@auraglow.com', 'BrandPass123!')">
+                  <i class="bi bi-building text-info me-1"></i>Brand
+                </button>
+                <button type="button" class="btn btn-glass btn-sm flex-fill" style="font-size: 0.78rem;" onclick="fillDemoLogin('admin@creatora.ai', 'AdminPass123!')">
+                  <i class="bi bi-shield-lock text-danger me-1"></i>Admin
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. REGISTER TAB -->
+          <div class="tab-pane fade" id="start-register-pane" role="tabpanel" aria-labelledby="start-register-tab">
+            <div class="text-center mb-3">
+              <h4 class="fw-bold text-white mb-1">Create Account</h4>
+              <p class="text-muted small mb-0">Join the AI creative ecosystem</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register') }}" id="startRegisterForm">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+              <!-- Role Selector -->
+              <div class="mb-3">
+                <label class="form-label small text-muted mb-2">Select Account Type</label>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <input type="radio" class="btn-check" name="role" id="startRoleCreator" value="creator" checked onchange="toggleStartRoleFields()">
+                    <label class="btn btn-glass w-100 p-2 text-start d-flex flex-column gap-1 h-100" for="startRoleCreator">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-white small"><i class="bi bi-stars text-warning me-1"></i> Creator</span>
+                        <i class="bi bi-check-circle-fill text-primary" style="font-size: 0.85rem;"></i>
+                      </div>
+                      <span class="text-muted" style="font-size: 0.72rem;">Showcase portfolio &amp; earn</span>
+                    </label>
+                  </div>
+                  <div class="col-6">
+                    <input type="radio" class="btn-check" name="role" id="startRoleBrand" value="brand" onchange="toggleStartRoleFields()">
+                    <label class="btn btn-glass w-100 p-2 text-start d-flex flex-column gap-1 h-100" for="startRoleBrand">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-white small"><i class="bi bi-building text-info me-1"></i> Brand</span>
+                        <i class="bi bi-check-circle-fill text-primary" style="font-size: 0.85rem;"></i>
+                      </div>
+                      <span class="text-muted" style="font-size: 0.72rem;">Hire AI talent &amp; post briefs</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Role Name Input -->
+              <div class="mb-2" id="startCreatorNameGroup">
+                <label for="startDisplayName" class="form-label small text-muted">Creator Display Name</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-person"></i></span>
+                  <input type="text" class="form-control" id="startDisplayName" name="display_name" placeholder="e.g. Maya Lin Art">
+                </div>
+              </div>
+
+              <div class="mb-2 d-none" id="startBrandNameGroup">
+                <label for="startCompanyName" class="form-label small text-muted">Company / Brand Name</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-briefcase"></i></span>
+                  <input type="text" class="form-control" id="startCompanyName" name="company_name" placeholder="e.g. Apex Media Labs">
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div class="mb-2">
+                <label for="startRegisterEmail" class="form-label small text-muted">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-envelope"></i></span>
+                  <input type="email" class="form-control" id="startRegisterEmail" name="email" placeholder="name@domain.com" required>
+                </div>
+              </div>
+
+              <!-- Passwords -->
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label for="startRegPassword" class="form-label small text-muted">Password</label>
+                  <input type="password" class="form-control" id="startRegPassword" name="password" placeholder="6+ chars" minlength="6" required>
+                </div>
+                <div class="col-6">
+                  <label for="startRegConfirmPassword" class="form-label small text-muted">Confirm</label>
+                  <input type="password" class="form-control" id="startRegConfirmPassword" name="confirm_password" placeholder="Repeat" minlength="6" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary-glow w-100 py-2 fw-bold" id="startSubmitRegisterBtn">
+                Create Account <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
       {% endif %}
-    </div>
 
-    <!-- Platform Highlights Bar -->
-    <div class="row g-4 mt-5 justify-content-center">
-      <div class="col-lg-3 col-6">
-        <div class="stat-widget text-center">
-          <div class="display-6 fw-bold text-white mb-1">{{ creators_count or '120+' }}</div>
-          <div class="text-muted small text-uppercase fw-semibold">Vetted AI Creators</div>
-        </div>
+      <!-- Minimal clean footer note -->
+      <div class="text-center mt-4 text-muted small" style="font-size: 0.78rem;">
+        &copy; {{ current_year }} Creatora AI. Create. Connect. Collaborate.
       </div>
-      <div class="col-lg-3 col-6">
-        <div class="stat-widget text-center">
-          <div class="display-6 fw-bold text-info mb-1">{{ briefs_count or '45+' }}</div>
-          <div class="text-muted small text-uppercase fw-semibold">Active Briefs</div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-6">
-        <div class="stat-widget text-center">
-          <div class="display-6 fw-bold text-purple mb-1" style="color: #c084fc;">{{ portfolio_count or '350+' }}</div>
-          <div class="text-muted small text-uppercase fw-semibold">Showcase Projects</div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-6">
-        <div class="stat-widget text-center">
-          <div class="display-6 fw-bold text-success mb-1">98.4%</div>
-          <div class="text-muted small text-uppercase fw-semibold">Match Satisfaction</div>
-        </div>
-      </div>
+
     </div>
   </div>
-</section>
+</div>
+{% endblock %}
 
-<!-- Core Innovations Section -->
-<section class="py-5">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Engineered For Generative Media</h6>
-      <h2 class="display-5 fw-bold text-white">Why Creatora AI Leads the Industry</h2>
-      <p class="text-muted mx-auto" style="max-width: 600px;">
-        Traditional freelance networks lack AI tool comprehension. Creatora is built specifically for generative pipelines, prompt architectures, and legal compliance.
-      </p>
-    </div>
+{% block extra_js %}
+<script>
+function toggleStartRoleFields() {
+  const isCreator = document.getElementById('startRoleCreator')?.checked;
+  const creatorGroup = document.getElementById('startCreatorNameGroup');
+  const brandGroup = document.getElementById('startBrandNameGroup');
+  if (!creatorGroup || !brandGroup) return;
 
-    <div class="row g-4">
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-primary bg-opacity-25 text-primary mb-3">
-            <i class="bi bi-cpu fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">Explainable AI Matching</h4>
-          <p class="text-muted small">
-            Hybrid ranking engine using 7 normalized weighted factors: skills, portfolio depth, specialization, tools, format, budget, and availability with transparent score breakdowns.
-          </p>
-          <span class="badge badge-creatora badge-primary-soft">7 Weighted Factors</span>
-        </div>
-      </div>
+  if (isCreator) {
+    creatorGroup.classList.remove('d-none');
+    brandGroup.classList.add('d-none');
+  } else {
+    creatorGroup.classList.add('d-none');
+    brandGroup.classList.remove('d-none');
+  }
+}
 
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-info bg-opacity-25 text-info mb-3">
-            <i class="bi bi-magic fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">AI Campaign Brief Builder</h4>
-          <p class="text-muted small">
-            Transforms informal concepts like "I need an AI skincare video" into structured, production-ready creative briefs with deliverables, aspect ratios, and acceptance criteria.
-          </p>
-          <span class="badge badge-creatora badge-cyan-soft">Gemini Powered</span>
-        </div>
-      </div>
+function fillDemoLogin(email, password) {
+  const emailInput = document.getElementById('startLoginEmail');
+  const passwordInput = document.getElementById('startLoginPassword');
+  if (emailInput && passwordInput) {
+    emailInput.value = email;
+    passwordInput.value = password;
+    emailInput.focus();
+    emailInput.classList.add('border-primary');
+    passwordInput.classList.add('border-primary');
+    setTimeout(() => {
+      emailInput.classList.remove('border-primary');
+      passwordInput.classList.remove('border-primary');
+    }, 1200);
+  }
+}
 
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-success bg-opacity-25 text-success mb-3">
-            <i class="bi bi-shield-check fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">Commercial Licensing Assistant</h4>
-          <p class="text-muted small">
-            Automated verification of generative engine terms (Midjourney, Runway Gen-3, ElevenLabs, Kling) and declared assets for commercial broadcast compliance.
-          </p>
-          <span class="badge badge-creatora badge-verified">Legal Safety Audit</span>
-        </div>
-      </div>
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) {
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    }
+  } else {
+    input.type = 'password';
+    if (icon) {
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  }
+}
 
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-warning bg-opacity-25 text-warning mb-3">
-            <i class="bi bi-kanban fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">Collaboration Workspace</h4>
-          <p class="text-muted small">
-            Full project lifecycle workspace featuring milestones, draft version control, video preview player, feedback threads, and final deliverables sign-off.
-          </p>
-          <span class="badge badge-creatora badge-pending">Version Controlled</span>
-        </div>
-      </div>
-
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-danger bg-opacity-25 text-danger mb-3">
-            <i class="bi bi-patch-check fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">Creator Verification System</h4>
-          <p class="text-muted small">
-            Independent human review of portfolio evidence, prompt methodology, and generative tool subscriptions to award verified creator badges.
-          </p>
-          <span class="badge badge-creatora badge-verified">Moderated Trust</span>
-        </div>
-      </div>
-
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 glass-card-interactive">
-          <div class="stat-icon bg-purple bg-opacity-25 text-purple mb-3" style="color: #a855f7;">
-            <i class="bi bi-file-earmark-pdf fs-3"></i>
-          </div>
-          <h4 class="text-white mb-2">AI Proposals &amp; PDF Export</h4>
-          <p class="text-muted small">
-            Creators draft custom proposals in seconds using AI synthesis, and brands can export complete brief specifications as high-resolution PDF documents.
-          </p>
-          <span class="badge badge-creatora badge-primary-soft">One-Click PDF</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Featured Creators Spotlight -->
-<section class="py-5 bg-surface">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
-      <div>
-        <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Elite Talent</h6>
-        <h2 class="h2 fw-bold text-white mb-0">Featured AI Content Creators</h2>
-      </div>
-      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm">
-        View All Creators <i class="bi bi-arrow-right ms-1"></i>
-      </a>
-    </div>
-
-    <div class="row g-4">
-      {% for creator in featured_creators %}
-      <div class="col-lg-3 col-md-6">
-        <div class="glass-card p-3 h-100 d-flex flex-column glass-card-interactive">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
-                 alt="{{ creator.display_name }}" 
-                 class="rounded-circle object-fit-cover shadow" 
-                 style="width: 56px; height: 56px;"
-                 onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
-            <div>
-              <h5 class="mb-0 text-white fw-bold">{{ creator.display_name }}</h5>
-              <div class="small text-muted">{{ creator.specialization or 'AI Creator' }}</div>
-              {% if creator.verification_status == 'Verified' %}
-                <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
-                  <i class="bi bi-patch-check-fill"></i> Verified
-                </span>
-              {% endif %}
-            </div>
-          </div>
-
-          <p class="text-muted small flex-grow-1" style="line-height: 1.4;">
-            {{ creator.bio[:110] }}{% if creator.bio|length > 110 %}...{% endif %}
-          </p>
-
-          <div class="mb-3">
-            <div class="d-flex flex-wrap gap-1">
-              {% for tool in creator.get_tools_list()[:3] %}
-                <span class="badge bg-dark border border-secondary text-white-50" style="font-size: 0.7rem;">{{ tool }}</span>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
-            <div>
-              <span class="text-muted small">Rate:</span>
-              <span class="fw-bold text-white small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
-            </div>
-            <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
-              Portfolio <i class="bi bi-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- Recent Campaign Briefs Showcase -->
-<section class="py-5">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
-      <div>
-        <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Live Opportunities</h6>
-        <h2 class="h2 fw-bold text-white mb-0">Active Creative Campaigns</h2>
-      </div>
-      <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-glass btn-sm">
-        Explore All Briefs <i class="bi bi-arrow-right ms-1"></i>
-      </a>
-    </div>
-
-    <div class="row g-4">
-      {% for brief in recent_briefs %}
-      <div class="col-lg-4 col-md-6">
-        <div class="glass-card p-4 h-100 d-flex flex-column glass-card-interactive">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="badge badge-creatora badge-cyan-soft">{{ brief.content_category }}</span>
-            <span class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span>
-          </div>
-
-          <h4 class="text-white fw-bold mb-2">{{ brief.title }}</h4>
-          <div class="small text-muted mb-3">
-            <i class="bi bi-building me-1"></i> {{ brief.brand.company_name }}
-          </div>
-
-          <p class="text-muted small flex-grow-1">
-            {{ brief.description[:130] }}...
-          </p>
-
-          <div class="p-2 rounded bg-black bg-opacity-30 mb-3 small d-flex justify-content-between text-muted">
-            <span><i class="bi bi-aspect-ratio me-1"></i> {{ brief.aspect_ratio }}</span>
-            <span><i class="bi bi-camera-reels me-1"></i> {{ brief.content_type }}</span>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
-            <span class="small text-dim"><i class="bi bi-clock me-1"></i> {{ brief.created_at.strftime('%b %d') }}</span>
-            <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="btn btn-glass btn-sm">
-              View Brief &amp; Apply <i class="bi bi-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- Ready to Launch Call-to-Action -->
-<section class="py-5 text-center position-relative">
-  <div class="container">
-    <div class="glass-card p-5 border-glow animate-glow position-relative overflow-hidden">
-      <div class="position-relative z-2">
-        <h2 class="display-5 fw-bold text-white mb-3">Accelerate Your Next AI Campaign</h2>
-        <p class="text-muted mx-auto mb-4" style="max-width: 650px;">
-          Whether you're an AI director producing next-generation commercial spots or a brand seeking viral visual identity, Creatora AI brings structure, trust, and speed.
-        </p>
-        <div class="d-flex flex-wrap justify-content-center gap-3">
-          <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow px-4 py-3 fs-5">
-            Create Free Account <i class="bi bi-arrow-right"></i>
-          </a>
-          <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass px-4 py-3 fs-5">
-            Browse Portfolios
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+document.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth') === 'register' || window.location.hash === '#register') {
+    const regTabBtn = document.getElementById('start-register-tab');
+    if (regTabBtn) {
+      const tab = new bootstrap.Tab(regTabBtn);
+      tab.show();
+    }
+  }
+});
+</script>
 {% endblock %}

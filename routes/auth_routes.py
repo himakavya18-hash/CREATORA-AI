@@ -68,65 +68,51 @@ def register():
         display_name = request.form.get('display_name', '').strip()
         company_name = request.form.get('company_name', '').strip()
 
-        # Validation
         if not email or '@' not in email:
             flash('Please provide a valid email address.', 'danger')
             return render_template('register.html')
-
         if len(password) < 6:
             flash('Password must be at least 6 characters long.', 'danger')
             return render_template('register.html')
-
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
             return render_template('register.html')
-
         if role not in ['creator', 'brand']:
             flash('Invalid account role specified.', 'danger')
             return render_template('register.html')
-
-        existing = User.query.filter_by(email=email).first()
-        if existing:
+        if User.query.filter_by(email=email).first():
             flash('An account with this email already exists. Please log in.', 'warning')
             return redirect(url_for('auth.login'))
 
-        # Create user
         user = User(email=email, role=role)
         user.set_password(password)
         db.session.add(user)
         db.session.flush()
 
         if role == 'creator':
-            c_name = display_name if display_name else email.split('@')[0].capitalize()
             profile = CreatorProfile(
                 user_id=user.id,
-                display_name=c_name,
+                display_name=display_name or email.split('@')[0].capitalize(),
                 headline='AI Content Creator & Prompt Engineer',
                 bio='Passionate about generative AI pipelines, photorealistic image synthesis, and AI video production.'
             )
-            db.session.add(profile)
-        elif role == 'brand':
-            b_name = company_name if company_name else f"{email.split('@')[0].capitalize()} Media"
+        else:
             profile = BrandProfile(
                 user_id=user.id,
-                company_name=b_name,
+                company_name=company_name or f"{email.split('@')[0].capitalize()} Media",
                 description='Forward-thinking brand commissioning AI creative campaigns.'
             )
-            db.session.add(profile)
-
-        # Audit log
-        log = AuditLog(
+        db.session.add(profile)
+        db.session.add(AuditLog(
             user_id=user.id,
             action='USER_REGISTER',
             resource_type='User',
             resource_id=user.id,
             details=f"New {role} account registered: {email}",
             ip_address=request.remote_addr or '127.0.0.1'
-        )
-        db.session.add(log)
+        ))
         db.session.commit()
 
-        # Welcome notification
         NotificationService.send_notification(
             user.id,
             'Welcome to Creatora AI!',
@@ -134,14 +120,8 @@ def register():
             link=url_for('creator.edit_profile' if role == 'creator' else 'brand.edit_profile'),
             notification_type='system'
         )
-
-        login_user(user)
-        flash('Registration successful! Welcome to Creatora AI.', 'success')
-
-        if role == 'creator':
-            return redirect(url_for('creator.dashboard'))
-        else:
-            return redirect(url_for('brand.dashboard'))
+        flash('Registration complete. Please log in with your new account.', 'success')
+        return redirect(url_for('auth.login'))
 
     return render_template('register.html')
 

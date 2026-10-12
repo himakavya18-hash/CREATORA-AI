@@ -6,7 +6,7 @@
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
 ### 1. Multi-Role System with Server-Side RBAC
 - **Creators:** Manage public profile, portfolio items with generative tool pipelines, applications, proposals, and project collaboration workspaces.
@@ -48,7 +48,115 @@
 
 ---
 
-## 🛠️ Mandatory Tech Stack
+##  System Architecture
+
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                1. User Layer                                │
+│                        Creator · Brand/Agency · Admin                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            2. Presentation Layer                            │
+│                   HTML5 · CSS3 · JavaScript · Bootstrap 5                   │
+│                Dashboards · Profiles · Portfolios · Campaigns               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            3. Application Layer                             │
+│    Python + Flask · Routes · Authentication · Validation · Role permissions │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       4. Business Logic & AI Services                       │
+│  ┌───────────────────────────────────┐   ┌───────────────────────────────┐  │
+│  │      Smart Creator Matching       │   │      AI Brief Generator       │  │
+│  └───────────────────────────────────┘   └───────────────────────────────┘  │
+│  ┌───────────────────────────────────┐   ┌───────────────────────────────┐  │
+│  │      Portfolio AI Assistant       │   │   Proposals & Collaboration   │  │
+│  └───────────────────────────────────┘   └───────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                   ┌───────────────────┴───────────────────┐
+                   ▼                                       ▼
+┌─────────────────────────────────────┐ ┌─────────────────────────────────────┐
+│            5A. Database             │ │          5B. AI & Storage           │
+│       SQLite + SQLAlchemy ORM       │ │     Gemini API or configured LLM    │
+│    Users, profiles, briefs,         │ │       AI-generated suggestions      │
+│  applications, projects, messages   │ │          and media storage          │
+└─────────────────────────────────────┘ └─────────────────────────────────────┘
+```
+
+<details>
+<summary><b>Click to expand Mermaid Flowchart</b></summary>
+
+```mermaid
+flowchart TD
+    L1["<b>1. User Layer</b><br/>Creator · Brand/Agency · Admin"]
+    
+    L2["<b>2. Presentation Layer</b><br/>HTML5 · CSS3 · JavaScript · Bootstrap 5<br/>Dashboards · Profiles · Portfolios · Campaigns"]
+    
+    L3["<b>3. Application Layer</b><br/>Python + Flask · Routes · Authentication · Validation · Role permissions"]
+
+    subgraph L4 ["4. Business Logic & AI Services"]
+        direction TB
+        subgraph L4_R1 [" "]
+            direction LR
+            S1[" <b>Smart Creator Matching</b>"]
+            S2[" <b>AI Brief Generator</b>"]
+        end
+        subgraph L4_R2 [" "]
+            direction LR
+            S3[" <b>Portfolio AI Assistant</b>"]
+            S4[" <b>Proposals & Collaboration</b>"]
+        end
+        L4_R1 ~~~ L4_R2
+    end
+
+    D1[" <b>5A. Database</b><br/><b>SQLite + SQLAlchemy ORM</b><br/>Users, profiles, briefs,<br/>applications, projects, messages"]
+    D2[" <b>5B. AI & Storage</b><br/><b>Gemini API or configured LLM</b><br/>AI-generated suggestions<br/>and media storage"]
+
+    L1 --> L2
+    L2 --> L3
+    L3 --> S1
+    L3 --> S2
+    S3 --> D1
+    S3 --> D2
+    S4 --> D1
+    S4 --> D2
+
+    style L1 fill:#172b4d,stroke:#2684ff,stroke-width:2px,color:#ffffff
+    style L2 fill:#18181b,stroke:#52525b,stroke-width:2px,color:#ffffff
+    style L3 fill:#0e4a36,stroke:#10b981,stroke-width:2px,color:#ffffff
+    style L4 fill:#18181b,stroke:#3f3f46,stroke-width:2px,color:#ffffff
+    style S1 fill:#27272a,stroke:#52525b,stroke-width:1px,color:#ffffff
+    style S2 fill:#27272a,stroke:#52525b,stroke-width:1px,color:#ffffff
+    style S3 fill:#27272a,stroke:#52525b,stroke-width:1px,color:#ffffff
+    style S4 fill:#27272a,stroke:#52525b,stroke-width:1px,color:#ffffff
+    style D1 fill:#18181b,stroke:#3f3f46,stroke-width:2px,color:#ffffff
+    style D2 fill:#18181b,stroke:#3f3f46,stroke-width:2px,color:#ffffff
+```
+
+</details>
+
+### Architectural Breakdown
+
+| Layer | Components & Technologies | Description |
+|---|---|---|
+| **1. User Layer** | Creator · Brand/Agency · Admin | Multi-role entry point for distinct actor workflows with server-enforced role boundaries. |
+| **2. Presentation Layer** | HTML5, CSS3, JavaScript, Bootstrap 5 | Cyber-glass UI, interactive dashboards, dynamic portfolios, campaign explorers, and responsive views. |
+| **3. Application Layer** | Python + Flask | Modular Blueprints, session handling, authentication, CSRF validation, and `@role_required` access control. |
+| **4. Business Logic & AI Services** | • **Smart Creator Matching**<br/>• **AI Brief Generator**<br/>• **Portfolio AI Assistant**<br/>• **Proposals & Collaboration** | Core platform intelligence: 7-factor weighted matching, natural language prompt decomposition, generative pipeline validation, and milestone workflows. |
+| **5A. Database** | SQLite + SQLAlchemy ORM | Relational models storing users, profiles, briefs, applications, project milestones, and messaging threads. |
+| **5B. AI & Storage** | Google Gemini API (or configured LLM) & Local Media Storage | Multimodal generation, structured brief synthesis, AI recommendations, and secure media uploads. |
+
+---
+
+##  Mandatory Tech Stack
 
 - **Backend:** Python 3.12, Flask, Flask-SQLAlchemy, Flask-Login, Flask-WTF (CSRF Protection), Werkzeug.
 - **Database:** SQLite (ORM-managed via SQLAlchemy with indexes, foreign keys, and constraints).
@@ -59,7 +167,7 @@
 
 ---
 
-## 🚀 Quickstart Guide
+##  Quickstart Guide
 
 ### 1. Prerequisites
 - Python 3.10+ (Python 3.12 recommended)
@@ -107,7 +215,7 @@ Open your browser and navigate to: `http://127.0.0.1:5000`
 
 ---
 
-## 👥 Demo Accounts (1-Click Login Ready)
+##  Demo Accounts (1-Click Login Ready)
 
 The login page features 1-click quick-fill buttons for hackathon judges and evaluators:
 
@@ -121,7 +229,7 @@ The login page features 1-click quick-fill buttons for hackathon judges and eval
 
 ---
 
-## 🧪 Running Automated Tests
+##  Running Automated Tests
 
 Run the test suite with pytest:
 ```bash
@@ -137,7 +245,7 @@ tests/test_matching.py .        [100%]
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 creatora-ai/
@@ -188,7 +296,7 @@ creatora-ai/
 
 ---
 
-## 🔒 Security & Best Practices
+##  Security & Best Practices
 
 - **Password Security:** Scrypt/PBKDF2 hashing via Werkzeug with salt.
 - **CSRF Protection:** Flask-WTF tokens enforced across all POST forms and AJAX requests.
@@ -199,5 +307,5 @@ creatora-ai/
 
 ---
 
-## 📜 License
+##  License
 MIT License. Built for the College Hackathon Showcase and real-world deployment.

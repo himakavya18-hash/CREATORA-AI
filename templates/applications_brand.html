@@ -53,7 +53,7 @@
                     {{ app.brief.title }}
                   </a>
                 </td>
-                <td class="text-success fw-bold small">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                <td class="text-success fw-bold small">&#8377; {{ "%.0f"|format(app.proposed_budget) }}</td>
                 <td class="text-muted small">{{ app.estimated_delivery_days }} Days</td>
                 <td>
                   <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">

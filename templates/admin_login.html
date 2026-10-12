@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Login — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-8">
+      <section class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="stat-icon bg-danger bg-opacity-25 text-danger mx-auto mb-3"><i class="bi bi-shield-lock fs-4"></i></div>
+          <h1 class="h3 fw-bold text-white">Administrator Login</h1>
+          <p class="text-muted small mb-0">Sign in to the Creatora administration center.</p>
+        </div>
+        <form method="POST" action="{{ url_for('admin.login') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label for="adminEmail" class="form-label">Administrator email</label>
+            <input id="adminEmail" name="email" type="email" class="form-control" autocomplete="username" required autofocus>
+          </div>
+          <div class="mb-4">
+            <label for="adminPassword" class="form-label">Password</label>
+            <input id="adminPassword" name="password" type="password" class="form-control" autocomplete="current-password" required>
+          </div>
+          <div class="form-check mb-4">
+            <input id="adminRemember" class="form-check-input" type="checkbox" name="remember">
+            <label class="form-check-label small text-muted" for="adminRemember">Remember this browser</label>
+          </div>
+          <button class="btn btn-primary-glow w-100 py-3 fw-bold" type="submit">Sign in as admin <i class="bi bi-arrow-right ms-1"></i></button>
+        </form>
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-25 small">
+          <a href="{{ url_for('auth.login') }}" class="text-muted text-decoration-none">User login</a>
+          <a href="{{ url_for('admin.register') }}" class="text-info text-decoration-none">Admin registration</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

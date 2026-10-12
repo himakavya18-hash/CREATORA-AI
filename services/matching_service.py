@@ -139,9 +139,9 @@ class MatchingService:
                 cautions.append("Portfolio items differ in theme/category from this campaign brief.")
 
             if budget_score >= 0.9:
-                strengths.append(f"Rates (${creator.hourly_rate_min:.0f}-${creator.hourly_rate_max:.0f}) fit within campaign budget range.")
+                strengths.append(f"Rates (₹{creator.hourly_rate_min:.0f}-₹{creator.hourly_rate_max:.0f}) fit within campaign budget range.")
             else:
-                cautions.append(f"Preferred rates (${creator.hourly_rate_min:.0f}+) are slightly higher than brief budget (${brief.budget_max:.0f}).")
+                cautions.append(f"Preferred rates (₹{creator.hourly_rate_min:.0f}+) are slightly higher than brief budget (₹{brief.budget_max:.0f}).")
 
             if creator.availability_status == 'Available':
                 strengths.append("Creator is marked immediately available for collaboration.")

@@ -164,7 +164,7 @@
                 <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
                   <div>
                     <span class="text-muted small d-block" style="font-size: 0.72rem;">Rates from:</span>
-                    <span class="fw-bold text-white small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
+                    <span class="fw-bold text-white small">&#8377; {{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
                   </div>
                   <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
                     View Portfolio &rarr;

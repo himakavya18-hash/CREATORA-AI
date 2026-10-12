@@ -1,11 +1,14 @@
 import os
 os.environ['DISABLE_SQLALCHEMY_CEXT'] = '1'
+from dotenv import load_dotenv
+load_dotenv()
 
 import sys
 from datetime import datetime
 from flask import Flask, render_template
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import text
 
 from config import config_by_name
 from models import db, User
@@ -80,6 +83,47 @@ def create_app(config_name=None):
         """Seeds database with realistic demo accounts and sample campaigns."""
         from seed import seed_database
         seed_database()
+
+    @app.cli.command("convert-usd-to-inr")
+    def convert_usd_to_inr_cmd():
+        """Convert existing USD-denominated marketplace records once using USD_TO_INR."""
+        marker = 'usd_to_inr_v2'
+        db.session.execute(text(
+            'CREATE TABLE IF NOT EXISTS app_migrations '
+            '(name VARCHAR(120) PRIMARY KEY)'))
+        if db.session.execute(text(
+                'SELECT name FROM app_migrations WHERE name = :name'),
+                {'name': marker}).first():
+            print('USD to INR conversion already applied.')
+            return
+
+        rate = app.config['USD_TO_INR']
+        from models import CreatorProfile, CreativeBrief, Project, Application
+        had_usd_briefs = CreativeBrief.query.filter_by(currency='USD').count() > 0
+        prior_run = db.session.execute(text(
+            'SELECT name FROM app_migrations WHERE name = :name'),
+            {'name': 'usd_to_inr_v1'}).first()
+        for application in Application.query.all():
+            if application.brief and application.brief.currency == 'USD':
+                application.proposed_budget *= rate
+        for brief in CreativeBrief.query.filter_by(currency='USD').all():
+            brief.budget_min *= rate
+            brief.budget_max *= rate
+            brief.currency = 'INR'
+        for project in Project.query.filter_by(currency='USD').all():
+            project.agreed_budget *= rate
+            project.currency = 'INR'
+        # Legacy installations used USD creator rates alongside USD briefs;
+        # fresh installations already seed creator rates in INR.
+        if had_usd_briefs or prior_run:
+            for profile in CreatorProfile.query.all():
+                profile.hourly_rate_min *= rate
+                profile.hourly_rate_max *= rate
+        db.session.execute(text(
+            'INSERT INTO app_migrations (name) VALUES (:name)'),
+            {'name': marker})
+        db.session.commit()
+        print(f'Converted legacy USD amounts to INR at {rate:.4f} INR per USD.')
 
     return app
 

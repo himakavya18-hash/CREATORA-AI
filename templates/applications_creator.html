@@ -41,7 +41,7 @@
                   {% endif %}
                 </td>
                 <td class="text-muted small">{{ app.brief.brand.company_name }}</td>
-                <td class="text-success fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                <td class="text-success fw-bold">&#8377; {{ "%.0f"|format(app.proposed_budget) }}</td>
                 <td class="text-muted small">{{ app.estimated_delivery_days }} Days</td>
                 <td>
                   <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% elif app.status == 'Withdrawn' %}bg-secondary text-white-50{% else %}badge-primary-soft{% endif %}">

@@ -16,8 +16,8 @@
             <div class="small text-muted">Brand: {{ brief.brand.company_name }} &bull; Format: {{ brief.aspect_ratio }}</div>
           </div>
           <div class="text-md-end">
-            <span class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span>
-            <span class="small text-muted d-block">Budget Ceiling</span>
+            <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(brief.budget_min) }} - &#8377; {{ "%.0f"|format(brief.budget_max) }}</span>
+            <span class="small text-muted d-block">Budget Ceiling (&#8377;)</span>
           </div>
         </div>
       </div>
@@ -47,14 +47,14 @@
           <!-- Proposed Budget & Estimated Delivery Days -->
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label for="proposedBudget" class="form-label">Proposed Budget ($ USD) *</label>
+              <label for="proposedBudget" class="form-label">Proposed Budget (&#8377;) *</label>
               <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary text-success">$</span>
+                <span class="input-group-text bg-dark border-secondary text-success">&#8377;</span>
                 <input type="number" class="form-control" id="proposedBudget" name="proposed_budget" 
                        value="{{ existing.proposed_budget if existing else brief.budget_min }}" 
-                       min="100" max="100000" step="50" required>
+                       min="100" step="100" required>
               </div>
-              <div class="form-text text-dim">Client budget range: ${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</div>
+              <div class="form-text text-dim">Client budget range: &#8377; {{ "%.0f"|format(brief.budget_min) }} - &#8377; {{ "%.0f"|format(brief.budget_max) }}</div>
             </div>
 
             <div class="col-md-6">

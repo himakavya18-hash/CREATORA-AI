@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Registration — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-8">
+      <section class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="stat-icon bg-danger bg-opacity-25 text-danger mx-auto mb-3"><i class="bi bi-shield-lock fs-4"></i></div>
+          <h1 class="h3 fw-bold text-white">Administrator Registration</h1>
+          {% if is_existing_admin %}
+          <p class="text-muted small mb-0">Create an additional administrator account as a verified administrator.</p>
+          {% else %}
+          <p class="text-muted small mb-0">Register an administrator account with your secret registration key.</p>
+          {% endif %}
+        </div>
+        <form method="POST" action="{{ url_for('admin.register') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if not is_existing_admin %}
+          <div class="mb-3">
+            <label for="registrationKey" class="form-label">Administrator Registration Key</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-key"></i></span>
+              <input id="registrationKey" name="registration_key" type="password" class="form-control" autocomplete="off" placeholder="Enter registration secret key" required>
+            </div>
+          </div>
+          {% endif %}
+          <div class="mb-3">
+            <label for="adminEmail" class="form-label">Administrator Email</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-envelope"></i></span>
+              <input id="adminEmail" name="email" type="email" class="form-control" autocomplete="username" placeholder="admin@creatora.ai" required autofocus>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="adminPassword" class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-lock"></i></span>
+              <input id="adminPassword" name="password" type="password" class="form-control" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required>
+            </div>
+            <div class="form-text text-muted small">Use at least 8 characters.</div>
+          </div>
+          <div class="mb-4">
+            <label for="adminConfirmPassword" class="form-label">Confirm Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-shield-check"></i></span>
+              <input id="adminConfirmPassword" name="confirm_password" type="password" class="form-control" minlength="8" autocomplete="new-password" placeholder="Re-enter password" required>
+            </div>
+          </div>
+          <button class="btn btn-primary-glow w-100 py-3 fw-bold" type="submit">
+            <i class="bi bi-person-plus me-1"></i> Create Administrator Account
+          </button>
+        </form>
+        <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25 small">
+          <a href="{{ url_for('admin.login') }}" class="text-info text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Return to administrator login
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

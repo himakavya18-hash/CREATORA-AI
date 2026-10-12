@@ -10,7 +10,7 @@ class Project(db.Model):
     creator_id = db.Column(db.Integer, db.ForeignKey('creator_profiles.id', ondelete='CASCADE'), nullable=False, index=True)
     
     agreed_budget = db.Column(db.Float, nullable=False)
-    currency = db.Column(db.String(10), default='USD')
+    currency = db.Column(db.String(10), default='INR')
     agreed_deadline = db.Column(db.DateTime, nullable=True)
     
     # Status: 'In Progress', 'In Review', 'Revisions Requested', 'Completed', 'Cancelled'

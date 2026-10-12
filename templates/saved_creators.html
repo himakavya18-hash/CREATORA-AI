@@ -46,7 +46,7 @@
             </p>
 
             <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
-              <span class="text-success fw-bold small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
+              <span class="text-success fw-bold small">&#8377; {{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
               <div class="d-flex gap-2">
                 <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
                   View Profile

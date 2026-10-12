@@ -4,43 +4,78 @@
 
 {% block content %}
 <div class="container py-4">
-  <!-- Brand Header -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div class="d-flex align-items-center gap-3">
-      <img src="{{ profile.logo_url or url_for('static', filename='images/default-brand.png') }}" 
-           alt="{{ profile.company_name }}" 
-           class="rounded-3 shadow object-fit-cover" 
-           style="width: 56px; height: 56px;"
-           onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=100&q=80'">
-      <div>
-        <div class="d-flex align-items-center gap-2">
-          <h2 class="h2 fw-bold text-white mb-0">{{ profile.company_name }}</h2>
-          <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-building"></i> Brand Portal</span>
-        </div>
-        <p class="text-muted small mb-0">{{ profile.industry }} &bull; {{ profile.target_audience[:60] }}</p>
-      </div>
-    </div>
+  <!-- Brand & Agency Profile Top Header Card (Role-Themed Talent Radar & Cyber Matrix) -->
+  <div class="glass-card brand-radar-card p-4 mb-4 border-glow position-relative overflow-hidden">
+    <!-- Ambient Cyber Grid Matrix -->
+    <div class="brand-ambient-grid"></div>
 
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-primary-glow btn-sm">
-        <i class="bi bi-magic"></i> AI Brief Builder
-      </a>
-      <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">
-        <i class="bi bi-plus-circle"></i> Create Brief Manually
-      </a>
-      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm">
-        <i class="bi bi-search"></i> Discover Creators
-      </a>
-      <a href="{{ url_for('brand.edit_profile') }}" class="btn btn-glass btn-sm" title="Edit Company Profile">
-        <i class="bi bi-gear"></i>
-      </a>
+    <div class="position-relative z-1 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <!-- Brand Logo with Cyber Scanner Aura -->
+        <div class="brand-logo-wrap">
+          <img src="{{ profile.logo_url or url_for('static', filename='images/default-brand.png') }}" 
+               alt="{{ profile.company_name }}" 
+               class="rounded-3 shadow object-fit-cover" 
+               style="width: 62px; height: 62px;"
+               onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=100&q=80'">
+        </div>
+        <div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h2 class="h2 fw-bold text-white mb-0">{{ profile.company_name }}</h2>
+            <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-building"></i> Brand &amp; Agency Portal</span>
+            {% if profile.verified %}
+              <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> Verified Enterprise</span>
+            {% endif %}
+            <!-- Live Talent Radar Beacon -->
+            <span class="badge bg-dark bg-opacity-75 border border-info border-opacity-50 text-white-50 d-inline-flex align-items-center gap-2 px-2 py-1" style="font-size: 0.72rem;">
+              <span class="radar-status-beacon"></span>
+              <span>Talent Radar Active</span>
+            </span>
+          </div>
+          <p class="text-muted small mb-0">
+            <i class="bi bi-briefcase text-info me-1"></i> {{ profile.industry or 'Creative Agency' }}
+            {% if profile.target_audience %} &bull; {{ profile.target_audience[:60] }}{% endif %}
+            {% if profile.website %}
+              &bull; <a href="{{ profile.website }}" target="_blank" class="text-info text-decoration-none"><i class="bi bi-link-45deg"></i> Website</a>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- Live Mini Talent Radar Scope Widget -->
+        <div class="radar-scope-widget d-none d-md-flex" title="Live AI Creator Discovery Radar Scanning">
+          <div class="radar-crosshair-h"></div>
+          <div class="radar-crosshair-v"></div>
+          <div class="radar-scope-ring"></div>
+          <div class="radar-scope-ring"></div>
+          <div class="radar-sweep-beam"></div>
+          <div class="radar-target-blip blip-1"></div>
+          <div class="radar-target-blip blip-2"></div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-primary-glow btn-sm">
+            <i class="bi bi-magic text-warning"></i> AI Brief Builder
+          </a>
+          <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">
+            <i class="bi bi-plus-circle"></i> Create Brief Manually
+          </a>
+          <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm">
+            <i class="bi bi-search text-info"></i> Discover Creators
+          </a>
+          <a href="{{ url_for('brand.edit_profile') }}" class="btn btn-glass btn-sm">
+            <i class="bi bi-pencil"></i> Edit Agency Profile
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Key Metrics Row -->
   <div class="row g-3 mb-4">
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card brand-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Total Campaigns</div>
@@ -57,7 +92,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card brand-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Proposals Received</div>
@@ -74,7 +109,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card brand-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Active Workspaces</div>
@@ -91,7 +126,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card brand-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Saved Creators</div>
@@ -136,7 +171,7 @@
                   </div>
                   <div class="small text-muted">
                     Format: <span class="text-white-50">{{ brief.aspect_ratio }} ({{ brief.content_type }})</span> &bull; 
-                    Budget: <span class="text-success">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span> &bull;
+                    Budget: <span class="text-success">&#8377; {{ "%.0f"|format(brief.budget_min) }} - &#8377; {{ "%.0f"|format(brief.budget_max) }}</span> &bull;
                     Proposals: <span class="text-info fw-semibold">{{ brief.applications.count() }}</span>
                   </div>
                 </div>
@@ -209,7 +244,7 @@
                         {{ app.brief.title }}
                       </a>
                     </td>
-                    <td class="text-success small fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                    <td class="text-success small fw-bold">&#8377; {{ "%.0f"|format(app.proposed_budget) }}</td>
                     <td>
                       <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">
                         {{ app.status }}

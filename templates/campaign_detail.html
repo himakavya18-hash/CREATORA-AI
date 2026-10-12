@@ -5,17 +5,30 @@
 {% block content %}
 <div class="container py-4">
   
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="{{ url_for('brief.list_briefs') }}" class="small text-muted text-decoration-none">
+  <!-- Back Option at Right End -->
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-glass btn-sm">
       <i class="bi bi-arrow-left me-1"></i> Back to Campaigns
     </a>
-    
+  </div>
+
+  <!-- Brand Profile Mini Card -->
+  <div class="d-flex justify-content-between align-items-center gap-3 mb-4 glass-card p-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary shadow"
+           style="width: 52px; height: 52px; flex-shrink: 0;">
+        <i class="bi bi-building text-info fs-5"></i>
+      </div>
+      <div>
+        <h6 class="text-white fw-bold mb-0">{{ brief.brand.company_name }}</h6>
+        <div class="small text-muted">{{ brief.brand.industry or 'Brand Partner' }}</div>
+      </div>
+    </div>
     <div class="d-flex gap-2">
       <!-- Export PDF -->
       <a href="{{ url_for('brief.export_brief_pdf', brief_id=brief.id) }}" class="btn btn-glass btn-sm" title="Export as PDF Specification">
         <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Export PDF
       </a>
-
       <!-- Brand Owner Controls -->
       {% if current_user.is_authenticated and current_user.is_brand and brief.brand_id == current_user.brand_profile.id %}
         <a href="{{ url_for('matching.match_creators', brief_id=brief.id) }}" class="btn btn-primary-glow btn-sm">
@@ -52,7 +65,7 @@
 
           <div class="text-md-end">
             <div class="h3 fw-bold text-success mb-0">
-              ${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}
+              &#8377; {{ "%.0f"|format(brief.budget_min) }} - &#8377; {{ "%.0f"|format(brief.budget_max) }}
             </div>
             <span class="text-muted small">Target Budget ({{ brief.currency }})</span>
           </div>
@@ -132,7 +145,7 @@
                     </div>
 
                     <div class="text-end">
-                      <span class="text-success fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</span>
+                      <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(app.proposed_budget) }}</span>
                       <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %} ms-2">
                         {{ app.status }}
                       </span>

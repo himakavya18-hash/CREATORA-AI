@@ -4,41 +4,84 @@
 
 {% block content %}
 <div class="container py-4">
-  <!-- Header with Welcome & Verification Status -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <h2 class="h2 fw-bold text-white mb-0">Welcome back, {{ profile.display_name }}</h2>
-        {% if profile.verification_status == 'Verified' %}
-          <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> Verified Creator</span>
-        {% elif profile.verification_status == 'Pending Review' %}
-          <span class="badge badge-creatora badge-pending"><i class="bi bi-hourglass-split"></i> Verification Pending</span>
-        {% else %}
-          <a href="{{ url_for('creator.verification') }}" class="badge badge-creatora badge-primary-soft text-decoration-none">
-            <i class="bi bi-shield-plus"></i> Get Verified
-          </a>
-        {% endif %}
-      </div>
-      <p class="text-muted small mb-0">{{ profile.headline or 'AI Artist & Content Creator' }} &bull; {{ profile.location or 'Global' }}</p>
+  <!-- Creator Profile Top Header Card (Role-Themed Creative Generative Aurora) -->
+  <div class="glass-card creator-aurora-card p-4 mb-4 border-glow position-relative overflow-hidden">
+    <!-- Ambient Generative Shifting Aurora Mesh -->
+    <div class="creator-ambient-mesh"></div>
+
+    <!-- Floating Creative AI Particles -->
+    <div class="creator-sparkles-container">
+      <div class="creator-sparkle"></div>
+      <div class="creator-sparkle"></div>
+      <div class="creator-sparkle"></div>
+      <div class="creator-sparkle"></div>
+      <div class="creator-sparkle"></div>
     </div>
 
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('creator.add_portfolio_item') }}" class="btn btn-primary-glow btn-sm">
-        <i class="bi bi-cloud-arrow-up"></i> Add Portfolio Project
-      </a>
-      <a href="{{ url_for('creator.public_profile', creator_id=profile.id) }}" class="btn btn-glass btn-sm">
-        <i class="bi bi-eye"></i> View Public Profile
-      </a>
-      <a href="{{ url_for('creator.edit_profile') }}" class="btn btn-glass btn-sm" title="Edit Profile">
-        <i class="bi bi-gear"></i>
-      </a>
+    <div class="position-relative z-1 d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <!-- Generative Halo Avatar -->
+        <div class="creator-avatar-wrap">
+          <img src="{{ profile.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}"
+               alt="{{ profile.display_name }}"
+               class="rounded-circle object-fit-cover"
+               style="width: 62px; height: 62px;"
+               onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'">
+        </div>
+        <div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h2 class="h2 fw-bold text-white mb-0">{{ profile.display_name }}</h2>
+            {% if profile.verification_status == 'Verified' %}
+              <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> Verified Creator</span>
+            {% elif profile.verification_status == 'Pending Review' %}
+              <span class="badge badge-creatora badge-pending"><i class="bi bi-hourglass-split"></i> Verification Pending</span>
+            {% else %}
+              <a href="{{ url_for('creator.verification') }}" class="badge badge-creatora badge-primary-soft text-decoration-none">
+                <i class="bi bi-shield-plus"></i> Get Verified
+              </a>
+            {% endif %}
+            <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-palette"></i> {{ profile.specialization or 'Generative AI' }}</span>
+            <!-- Live Synthesis Engine Status with Animated Equalizer -->
+            <span class="badge bg-dark bg-opacity-75 border border-primary border-opacity-50 text-white-50 d-inline-flex align-items-center gap-2 px-2 py-1" style="font-size: 0.72rem;">
+              <span class="creator-live-eq">
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+                <span class="eq-bar"></span>
+              </span>
+              <span>AI Engine Active</span>
+            </span>
+          </div>
+          <p class="text-muted small mb-0">
+            {{ profile.headline or 'AI Artist & Content Creator' }} &bull; <i class="bi bi-geo-alt text-danger"></i> {{ profile.location or 'Global' }}
+            {% if profile.hourly_rate_min %}
+              &bull; <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(profile.hourly_rate_min) }}/hr</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('studio.video_studio') }}" class="btn btn-glass btn-sm">
+          <i class="bi bi-camera-reels text-warning"></i> Video Studio
+        </a>
+        <a href="{{ url_for('creator.add_portfolio_item') }}" class="btn btn-primary-glow btn-sm">
+          <i class="bi bi-cloud-arrow-up"></i> Add Portfolio Project
+        </a>
+        <a href="{{ url_for('creator.public_profile', creator_id=profile.id) }}" class="btn btn-glass btn-sm">
+          <i class="bi bi-eye text-info"></i> View Public Profile
+        </a>
+        <a href="{{ url_for('creator.edit_profile') }}" class="btn btn-glass btn-sm">
+          <i class="bi bi-pencil"></i> Edit Profile
+        </a>
+      </div>
     </div>
   </div>
 
   <!-- Key Metrics Row -->
   <div class="row g-3 mb-4">
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card creator-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Portfolio Items</div>
@@ -55,7 +98,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card creator-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Applications</div>
@@ -72,7 +115,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card creator-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Active Workspaces</div>
@@ -89,7 +132,7 @@
     </div>
 
     <div class="col-lg-3 col-6">
-      <div class="glass-card p-3">
+      <div class="glass-card creator-stat-card p-3">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="text-muted small text-uppercase fw-semibold">Profile Strength</div>
@@ -161,7 +204,7 @@
                   </h6>
                   <div class="small text-muted">
                     Brand: <span class="text-white-50">{{ proj.brand.company_name }}</span> &bull; 
-                    Budget: <span class="text-success">${{ "%.0f"|format(proj.agreed_budget) }}</span> &bull; 
+                    Budget: <span class="text-success">&#8377; {{ "%.0f"|format(proj.agreed_budget) }}</span> &bull;
                     Status: <span class="badge badge-creatora badge-primary-soft">{{ proj.status }}</span>
                   </div>
                 </div>
@@ -210,7 +253,7 @@
                       {% endif %}
                     </td>
                     <td class="text-muted small">{{ app.brief.brand.company_name }}</td>
-                    <td class="text-success small fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                    <td class="text-success small fw-bold">&#8377; {{ "%.0f"|format(app.proposed_budget) }}</td>
                     <td>
                       <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">
                         {{ app.status }}
@@ -251,7 +294,7 @@
             <div class="p-3 rounded glass-card border-subtle">
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="badge badge-creatora badge-cyan-soft py-0" style="font-size: 0.65rem;">{{ r_brief.content_category }}</span>
-                <span class="text-success fw-bold small">${{ "%.0f"|format(r_brief.budget_max) }}</span>
+                <span class="text-success fw-bold small">&#8377; {{ "%.0f"|format(r_brief.budget_max) }}</span>
               </div>
               <h6 class="text-white fw-bold mb-1">
                 <a href="{{ url_for('brief.view_brief', brief_id=r_brief.id) }}" class="text-white text-decoration-none">
@@ -277,7 +320,7 @@
               <a href="{{ url_for('brief.view_brief', brief_id=sc.brief.id) }}" class="text-white text-decoration-none text-truncate" style="max-width: 190px;">
                 {{ sc.brief.title }}
               </a>
-              <span class="text-success fw-bold">${{ "%.0f"|format(sc.brief.budget_max) }}</span>
+              <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(sc.brief.budget_max) }}</span>
             </div>
           {% endfor %}
         </div>

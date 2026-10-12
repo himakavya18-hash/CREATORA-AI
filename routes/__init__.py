@@ -12,6 +12,8 @@ def register_blueprints(app):
     from routes.messaging_routes import messaging_bp
     from routes.notification_routes import notif_bp
     from routes.admin_routes import admin_bp
+    from routes.support_routes import support_bp
+    from routes.studio_routes import studio_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(creator_bp)
@@ -23,3 +25,5 @@ def register_blueprints(app):
     app.register_blueprint(messaging_bp)
     app.register_blueprint(notif_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(support_bp)
+    app.register_blueprint(studio_bp)

@@ -1,58 +1,98 @@
-import os
 import json
 import logging
 import re
+import urllib.request
 from flask import current_app
 
 logger = logging.getLogger(__name__)
 
 class AIService:
-    @staticmethod
-    def get_api_key():
-        try:
-            return current_app.config.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY', '')
-        except Exception:
-            return os.environ.get('GEMINI_API_KEY', '')
-
     @classmethod
-    def _call_gemini_api(cls, prompt_text, system_instruction=""):
-        """Attempts to call Google Gemini API. Returns parsed JSON or text, or None on failure."""
-        api_key = cls.get_api_key()
-        if not api_key or api_key == 'your_gemini_api_key_here':
+    def _call_ollama(cls, prompt_text, system_instruction=""):
+        """Calls a locally running Ollama server and returns its response text."""
+        try:
+            base_url = current_app.config.get('OLLAMA_BASE_URL', 'http://127.0.0.1:11434').rstrip('/')
+            payload = {
+                'model': current_app.config.get('OLLAMA_MODEL', 'gemma3:1b'),
+                'stream': False,
+                'format': 'json' if 'strict JSON' in system_instruction or 'strict JSON' in prompt_text else None,
+                'messages': ([{'role': 'system', 'content': system_instruction}] if system_instruction else []) +
+                            [{'role': 'user', 'content': prompt_text}],
+            }
+            payload = {key: value for key, value in payload.items() if value is not None}
+            req = urllib.request.Request(
+                f"{base_url}/api/chat", data=json.dumps(payload).encode('utf-8'),
+                headers={'Content-Type': 'application/json'}, method='POST')
+            with urllib.request.urlopen(req, timeout=120) as response:
+                data = json.loads(response.read().decode('utf-8'))
+            return data.get('message', {}).get('content')
+        except Exception as exc:
+            logger.warning("Local Ollama request failed: %s", exc)
             return None
 
-        # Try using google.genai or direct REST API
-        try:
-            from google import genai
-            client = genai.Client(api_key=api_key)
-            full_prompt = f"{system_instruction}\n\n{prompt_text}" if system_instruction else prompt_text
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=full_prompt,
-            )
-            if response and response.text:
-                return response.text
-        except Exception as e:
-            logger.warning(f"Google GenAI SDK call failed: {e}. Trying fallback REST request.")
-            try:
-                import requests
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{
-                        "parts": [{"text": f"{system_instruction}\n\n{prompt_text}"}]
-                    }]
-                }
-                res = requests.post(url, json=payload, timeout=10)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get('candidates', [])
-                    if candidates and 'content' in candidates[0]:
-                        parts = candidates[0]['content'].get('parts', [])
-                        if parts:
-                            return parts[0].get('text', '')
-            except Exception as re_err:
-                logger.error(f"Gemini REST API fallback error: {re_err}")
-        return None
+    @classmethod
+    def chat_support(cls, message, history, role):
+        """Answer platform questions for creators and brands with local Ollama."""
+        system_prompt = (
+            "You are Creatora AI Help, a concise support assistant for creators and brand users. "
+            "Help with account setup, creator profiles and portfolios, campaign briefs, applications, "
+            "proposals, messaging, projects, and navigating the marketplace. The current user's role "
+            f"is {role}. Give clear step-by-step guidance when useful. Do not claim to access or change "
+            "their account, payments, or private records. If a question needs an administrator or "
+            "account-specific access, say so plainly. Do not invent platform features."
+        )
+        conversation = []
+        for item in history:
+            who = 'User' if item['role'] == 'user' else 'Help assistant'
+            conversation.append(f"{who}: {item['content']}")
+        conversation.append(f"User: {message}")
+        return cls._call_ollama('\n'.join(conversation), system_prompt)
+
+    @classmethod
+    def create_video_storyboard(cls, concept):
+        """Turn a creator's idea into a short storyboard for the browser motion-graphics editor."""
+        system_prompt = """You are a motion graphics creative director. Return strict JSON only, with this shape:
+{"title":"short title","description":"one sentence","scenes":[
+{"headline":"short on-screen text","subheadline":"supporting text","background":"#112233","motif":"circle"},
+{"headline":"short on-screen text","subheadline":"supporting text","background":"#112233","motif":"orbit"},
+{"headline":"short on-screen text","subheadline":"supporting text","background":"#112233","motif":"burst"}]}
+Make it suitable for a polished creator showcase or product video. Keep text concise. Use only hex background colors and the motif names circle, orbit, or burst."""
+        response = cls._call_ollama(concept, system_prompt)
+        parsed = cls._extract_json(response)
+        ai_generated = isinstance(parsed, dict) and isinstance(parsed.get('scenes'), list) and len(parsed['scenes']) > 0
+        if not isinstance(parsed, dict):
+            parsed = {}
+
+        title = str(parsed.get('title') or concept[:70]).strip()[:100]
+        description = str(parsed.get('description') or f"Animated showcase: {title}").strip()[:240]
+        raw_scenes = parsed.get('scenes')
+        scenes = []
+        if isinstance(raw_scenes, list):
+            for scene in raw_scenes[:3]:
+                if not isinstance(scene, dict):
+                    continue
+                background = str(scene.get('background', '#111827'))
+                if not re.fullmatch(r'#[0-9a-fA-F]{6}', background):
+                    background = '#111827'
+                motif = scene.get('motif', 'circle')
+                if motif not in ('circle', 'orbit', 'burst'):
+                    motif = 'circle'
+                scenes.append({
+                    'headline': str(scene.get('headline') or title)[:70],
+                    'subheadline': str(scene.get('subheadline') or description)[:120],
+                    'background': background,
+                    'motif': motif,
+                })
+
+        if not scenes:
+            scenes = [
+                {'headline': title, 'subheadline': 'A new idea, brought to life.', 'background': '#111827', 'motif': 'circle'},
+                {'headline': 'Made to stand out', 'subheadline': description, 'background': '#172554', 'motif': 'orbit'},
+                {'headline': 'Create what is next', 'subheadline': 'Designed by you with Creatora Studio.', 'background': '#312e81', 'motif': 'burst'},
+            ]
+        while len(scenes) < 3:
+            scenes.append(scenes[-1])
+        return {'title': title, 'description': description, 'scenes': scenes, 'ai_generated': ai_generated}
 
     @classmethod
     def _extract_json(cls, raw_text):
@@ -107,7 +147,7 @@ Output MUST be strict JSON with the following keys:
 }
 Do not invent guaranteed product claims or non-existent constraints.
 """
-        api_response = cls._call_gemini_api(prompt_text, system_prompt)
+        api_response = cls._call_ollama(prompt_text, system_prompt)
         if api_response:
             parsed = cls._extract_json(api_response)
             if parsed and isinstance(parsed, dict) and 'title' in parsed:
@@ -128,8 +168,9 @@ Do not invent guaranteed product claims or non-existent constraints.
         platform = "Instagram Reels & TikTok"
         aspect_ratio = "9:16 (Vertical)"
         duration = "15-30 seconds"
-        b_min = 600.0
-        b_max = 1800.0
+        exchange_rate = current_app.config.get('USD_TO_INR', 96.20)
+        b_min = 600.0 * exchange_rate
+        b_max = 1800.0 * exchange_rate
         tools = "Runway Gen-3, Midjourney v6, ElevenLabs, Topaz Video AI"
         skills = "Video Generation, AI Inpainting, Upscaling, Sound Design"
 
@@ -149,8 +190,8 @@ Do not invent guaranteed product claims or non-existent constraints.
             category = "Beauty & Cosmetics"
             style = "Ethereal Pastel Glow, Organic Fluid Dynamics, Macro Close-ups"
             tools = "Midjourney v6, Runway Gen-3, Luma Dream Machine, Topaz Video AI"
-            b_min = 800.0
-            b_max = 2200.0
+            b_min = 800.0 * exchange_rate
+            b_max = 2200.0 * exchange_rate
         elif "game" in p_lower or "gaming" in p_lower:
             category = "Gaming & Entertainment"
             content_type = "Cinematic Game Trailer Teaser"
@@ -218,7 +259,7 @@ Title: {brief_data.get('title')}
 Description: {brief_data.get('description')}
 Deliverables: {brief_data.get('deliverables_count')}
 Style: {brief_data.get('creative_style')}
-Budget Range: ${brief_data.get('budget_min')} - ${brief_data.get('budget_max')}
+Budget Range: INR {brief_data.get('budget_min')} - INR {brief_data.get('budget_max')}
 
 Output MUST be strict JSON:
 {{
@@ -233,7 +274,7 @@ Output MUST be strict JSON:
 }}
 Do NOT invent fake past clients or claims. Be honest and focused on AI production methodology.
 """
-        api_response = cls._call_gemini_api("Generate proposal", system_prompt)
+        api_response = cls._call_ollama("Generate proposal", system_prompt)
         if api_response:
             parsed = cls._extract_json(api_response)
             if parsed and isinstance(parsed, dict) and 'creative_approach' in parsed:
@@ -245,9 +286,9 @@ Do NOT invent fake past clients or claims. Be honest and focused on AI productio
     @classmethod
     def _fallback_creator_proposal(cls, brief_data, creator_profile):
         tools = creator_profile.ai_tools or "Runway Gen-3, Midjourney v6"
-        b_min = brief_data.get('budget_min', 500)
-        b_max = brief_data.get('budget_max', 1500)
-        recommended_budget = round((b_min * 0.4 + b_max * 0.6) / 50) * 50
+        b_min = brief_data.get('budget_min', 50000)
+        b_max = brief_data.get('budget_max', 150000)
+        recommended_budget = round((b_min * 0.4 + b_max * 0.6) / 500) * 500
 
         return {
             "understanding_summary": (
@@ -305,7 +346,7 @@ Return strict JSON:
   "commercial_potential_notes": string
 }}
 """
-        res = cls._call_gemini_api(prompt)
+        res = cls._call_ollama(prompt)
         if res:
             parsed = cls._extract_json(res)
             if parsed and 'enhanced_description' in parsed:

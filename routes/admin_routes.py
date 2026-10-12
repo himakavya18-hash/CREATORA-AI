@@ -1,11 +1,93 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
-from flask_login import login_required, current_user
+import hmac
+from flask import Blueprint, current_app, render_template, redirect, url_for, flash, request, jsonify, abort
+from flask_login import current_user, login_user
 from models import db, User, CreatorProfile, BrandProfile, CreativeBrief, Project, VerificationRecord, Report, AuditLog
 from routes.auth_routes import admin_required
 from services import VerificationService, NotificationService
 
 admin_bp = Blueprint('admin', __name__)
+
+
+@admin_bp.route('/admin/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('admin.dashboard') if current_user.is_admin else url_for('auth.home'))
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        user = User.query.filter_by(email=email, role='admin').first()
+        if not user or not user.check_password(request.form.get('password', '')) or not user.is_active:
+            flash('Invalid administrator email or password.', 'danger')
+            return render_template('admin_login.html')
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        login_user(user, remember=bool(request.form.get('remember')))
+        db.session.add(AuditLog(user_id=user.id, action='ADMIN_LOGIN', resource_type='User',
+                                resource_id=user.id, details=f'Administrator logged in from {request.remote_addr}.',
+                                ip_address=request.remote_addr or '127.0.0.1'))
+        db.session.commit()
+        return redirect(url_for('admin.dashboard'))
+    return render_template('admin_login.html')
+
+
+@admin_bp.route('/admin/register', methods=['GET', 'POST'])
+def register():
+    is_existing_admin = current_user.is_authenticated and current_user.is_admin
+
+    # If logged in as creator or brand, redirect with explanation
+    if current_user.is_authenticated and not current_user.is_admin:
+        flash('You are signed in as a standard user. Sign out to access administrator registration.', 'warning')
+        return redirect(url_for('auth.home'))
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+        submitted_key = request.form.get('registration_key', '').strip()
+
+        # If not logged in as an existing admin, require the secret registration key
+        if not is_existing_admin:
+            expected_key = current_app.config.get('ADMIN_REGISTRATION_KEY', 'creatora-admin-2025')
+            if not submitted_key or not hmac.compare_digest(expected_key, submitted_key):
+                flash('The administrator registration key is invalid. Please provide the correct secret key.', 'danger')
+                return render_template('admin_register.html', is_existing_admin=is_existing_admin)
+
+        if not email or '@' not in email:
+            flash('Enter a valid email address.', 'danger')
+            return render_template('admin_register.html', is_existing_admin=is_existing_admin)
+
+        if len(password) < 8:
+            flash('Administrator passwords must be at least 8 characters long.', 'danger')
+            return render_template('admin_register.html', is_existing_admin=is_existing_admin)
+
+        if password != confirm:
+            flash('Passwords do not match.', 'danger')
+            return render_template('admin_register.html', is_existing_admin=is_existing_admin)
+
+        if User.query.filter_by(email=email).first():
+            flash('An account with that email already exists.', 'danger')
+            return render_template('admin_register.html', is_existing_admin=is_existing_admin)
+
+        user = User(email=email, role='admin', is_verified=True, is_active=True)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.flush()
+
+        actor_id = current_user.id if current_user.is_authenticated else user.id
+        db.session.add(AuditLog(
+            user_id=actor_id,
+            action='ADMIN_REGISTER',
+            resource_type='User',
+            resource_id=user.id,
+            details=f'Administrator account registered: {email}',
+            ip_address=request.remote_addr or '127.0.0.1'
+        ))
+        db.session.commit()
+
+        flash('Administrator account created successfully! Please sign in.', 'success')
+        return redirect(url_for('admin.login'))
+
+    return render_template('admin_register.html', is_existing_admin=is_existing_admin)
 
 @admin_bp.route('/admin/dashboard')
 @admin_required

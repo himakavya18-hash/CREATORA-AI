@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}Creator Video Studio — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-4">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+      <span class="badge badge-creatora badge-cyan-soft mb-2"><i class="bi bi-camera-reels me-1"></i> Creator workspace</span>
+      <h1 class="h2 fw-bold text-white mb-1">Video Studio</h1>
+      <p class="text-muted mb-0">Build motion graphics, edit a clip, and publish the finished showcase to your portfolio.</p>
+    </div>
+    <a href="{{ url_for('creator.dashboard') }}" class="btn btn-glass"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+
+  <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white-50 small">
+    <i class="bi bi-info-circle me-1"></i> MoviePy creates animated title videos from your prompt and renders edits to uploaded clips. Ollama can help draft a storyboard.
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-4 col-lg-5">
+      <section class="glass-card p-3 p-lg-4 mb-4">
+        <h2 class="h5 fw-bold text-white mb-3">Create a video with MoviePy</h2>
+        <label for="creationPrompt" class="form-label">Video title or prompt</label>
+        <textarea id="creationPrompt" class="form-control mb-3" rows="3" maxlength="1000" placeholder="A bold product launch for a new sustainable sneaker"></textarea>
+        
+        <label for="creationImage" class="form-label">Reference Image (Optional)</label>
+        <input id="creationImage" class="form-control mb-1" type="file" accept="image/*">
+        <div class="form-text text-dim mb-3">Upload an image or leave blank to auto-generate visual imagery from your prompt.</div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6"><label for="creationDuration" class="form-label">Length (seconds)</label><input id="creationDuration" class="form-control" type="number" min="3" max="120" value="10"></div>
+          <div class="col-6"><label for="creationRatio" class="form-label">Format</label><select id="creationRatio" class="form-select"><option value="16:9">Landscape 16:9</option><option value="9:16">Vertical 9:16</option><option value="1:1">Square 1:1</option></select></div>
+        </div>
+        <button id="createMoviepyVideo" class="btn btn-primary-glow w-100" type="button"><i class="bi bi-stars me-1"></i> Create animated video</button>
+        <div id="creationStatus" class="small text-muted mt-2" role="status">MoviePy creates a motion title video from your prompt.</div>
+      </section>
+
+      <section class="glass-card p-3 p-lg-4 mb-4">
+        <h2 class="h5 fw-bold text-white mb-3">1. Create a storyboard</h2>
+        <label for="studioConcept" class="form-label">Video idea</label>
+        <textarea id="studioConcept" class="form-control mb-3" rows="4" maxlength="1500" placeholder="A cinematic launch for a new sustainable sneaker. Bold typography, electric blue and warm white."></textarea>
+        <button id="makeStoryboard" class="btn btn-primary-glow w-100" type="button">
+          <i class="bi bi-magic me-1"></i> Create with Ollama
+        </button>
+        <div id="storyboardStatus" class="small text-muted mt-2" role="status">Your installed Ollama model writes the scene plan.</div>
+      </section>
+
+      <section class="glass-card p-3 p-lg-4">
+        <h2 class="h5 fw-bold text-white mb-3">2. Edit and export</h2>
+        <div class="mb-3">
+          <label for="studioAsset" class="form-label">Video or image source (optional)</label>
+          <input id="studioAsset" class="form-control" type="file" accept="video/*,image/*">
+          <div class="form-text text-dim">Choose a local clip to trim and style, or an image to animate.</div>
+        </div>
+        <div id="trimControls" class="row g-2 mb-3 d-none">
+          <div class="col-6"><label class="form-label" for="trimStart">Trim start (sec)</label><input id="trimStart" class="form-control" type="number" min="0" step="0.1" value="0"></div>
+          <div class="col-6"><label class="form-label" for="trimEnd">Trim end (sec)</label><input id="trimEnd" class="form-control" type="number" min="0" step="0.1"></div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label for="aspectRatio" class="form-label">Canvas shape</label>
+            <select id="aspectRatio" class="form-select">
+              <option value="16:9">Landscape 16:9</option>
+              <option value="9:16">Vertical 9:16</option>
+              <option value="1:1">Square 1:1</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label for="studioDuration" class="form-label">Animation length (sec)</label>
+            <input id="studioDuration" class="form-control" type="number" min="3" step="1" value="15">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="overlayText" class="form-label">Title overlay</label>
+          <input id="overlayText" class="form-control" type="text" maxlength="80" placeholder="Your showcase headline">
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-8">
+            <label for="brightness" class="form-label">Brightness</label>
+            <input id="brightness" class="form-range" type="range" min="50" max="150" value="100">
+          </div>
+          <div class="col-4">
+            <label for="accentColor" class="form-label">Accent</label>
+            <input id="accentColor" class="form-control form-control-color w-100" type="color" value="#67e8f9">
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="previewVideo" class="btn btn-glass flex-fill" type="button"><i class="bi bi-play-fill me-1"></i> Preview</button>
+          <button id="stopVideo" class="btn btn-glass" type="button"><i class="bi bi-stop-fill"></i> Stop</button>
+          <button id="exportVideo" class="btn btn-primary-glow flex-fill" type="button"><i class="bi bi-download me-1"></i> Create / export MP4</button>
+        </div>
+        <video id="sourceVideo" class="studio-source-video" playsinline></video>
+        <img id="sourceImage" class="studio-source-image" alt="Selected image source">
+        <div id="exportStatus" class="small text-muted mt-3" role="status">MoviePy renders your video to MP4.</div>
+      </section>
+    </div>
+
+    <div class="col-xl-8 col-lg-7">
+      <section class="glass-card p-3 p-lg-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h5 fw-bold text-white mb-0">Preview canvas</h2>
+          <span id="sceneLabel" class="small text-muted">Storyboard graphics</span>
+        </div>
+        <div class="studio-canvas-wrap position-relative">
+          <canvas id="studioCanvas" aria-label="Video preview"></canvas>
+          <video id="studioActivePlayer" controls autoplay loop playsinline class="d-none w-100" style="max-height: 72vh; border-radius: 12px; background: #000; object-fit: contain;"></video>
+        </div>
+        <div class="row g-3 mt-3">
+          <div class="col-md-6">
+            <label for="projectTitle" class="form-label">Portfolio title</label>
+            <input id="projectTitle" class="form-control" maxlength="150" value="My Creator Showcase" required>
+          </div>
+          <div class="col-md-6">
+            <label for="projectDescription" class="form-label">Description</label>
+            <input id="projectDescription" class="form-control" maxlength="500" value="Created in Creatora Video Studio.">
+          </div>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+          <button id="savePortfolio" class="btn btn-success" type="button" disabled><i class="bi bi-collection me-1"></i> Save to portfolio</button>
+          <a id="portfolioLink" class="small text-info d-none" href="#">Open portfolio video</a>
+          <span class="small text-muted">Your exported video is also downloaded locally.</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+  const canvas = document.getElementById('studioCanvas');
+  const ctx = canvas.getContext('2d');
+  const video = document.getElementById('sourceVideo');
+  const image = document.getElementById('sourceImage');
+  const fileInput = document.getElementById('studioAsset');
+  const trimControls = document.getElementById('trimControls');
+  const planState = { title: 'Your next big idea', description: 'A creator showcase, made with motion graphics.', scenes: [
+    {headline: 'Your next big idea', subheadline: 'A creator showcase, made with motion graphics.', background: '#111827', motif: 'circle'},
+    {headline: 'Made to stand out', subheadline: 'Creative work deserves a bold presentation.', background: '#172554', motif: 'orbit'},
+    {headline: 'Create what is next', subheadline: 'Designed by you with Creatora Studio.', background: '#312e81', motif: 'burst'}
+  ]};
+  let sourceType = 'motion';
+  let objectUrl = null;
+  let playing = false;
+  let previewStart = 0;
+  let animationFrame = null;
+  let renderedVideoUrl = null;
+
+  function canvasSize() {
+    const ratio = document.getElementById('aspectRatio').value;
+    if (ratio === '9:16') { canvas.width = 720; canvas.height = 1280; }
+    else if (ratio === '1:1') { canvas.width = 1080; canvas.height = 1080; }
+    else { canvas.width = 1280; canvas.height = 720; }
+  }
+
+  function coverDraw(media, width, height) {
+    const mediaWidth = media.videoWidth || media.naturalWidth || media.width;
+    const mediaHeight = media.videoHeight || media.naturalHeight || media.height;
+    const scale = Math.max(width / mediaWidth, height / mediaHeight);
+    const drawWidth = mediaWidth * scale;
+    const drawHeight = mediaHeight * scale;
+    ctx.drawImage(media, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+  }
+
+  function drawFrame(now = 0) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const elapsed = playing ? Math.max(0, (performance.now() - previewStart) / 1000) : 0;
+    const scenes = planState.scenes;
+    const sceneIndex = sourceType === 'motion' ? Math.floor(elapsed / 5) % scenes.length : Math.min(scenes.length - 1, Math.floor(elapsed / 5));
+    const scene = scenes[sceneIndex] || scenes[0];
+    ctx.save();
+    ctx.clearRect(0, 0, width, height);
+    ctx.filter = `brightness(${document.getElementById('brightness').value}%)`;
+
+    if (sourceType === 'video' && video.readyState >= 2) {
+      coverDraw(video, width, height);
+      ctx.fillStyle = 'rgba(4, 8, 20, 0.3)';
+      ctx.fillRect(0, 0, width, height);
+    } else if (sourceType === 'image' && image.complete && image.naturalWidth) {
+      coverDraw(image, width, height);
+      ctx.fillStyle = 'rgba(4, 8, 20, 0.28)';
+      ctx.fillRect(0, 0, width, height);
+    } else {
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, scene.background);
+      gradient.addColorStop(1, '#090d19');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      const accent = document.getElementById('accentColor').value;
+      const pulse = 0.55 + Math.sin(elapsed * 1.5) * 0.12;
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = accent;
+      const cx = width * (0.73 + Math.sin(elapsed * 0.32) * 0.035);
+      const cy = height * 0.38;
+      const radius = Math.min(width, height) * 0.16;
+      if (scene.motif === 'orbit') {
+        ctx.beginPath(); ctx.ellipse(cx, cy, radius * 1.4, radius * 0.62, elapsed * 0.3, 0, Math.PI * 2); ctx.lineWidth = Math.max(5, width * 0.008); ctx.strokeStyle = accent; ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx + Math.cos(elapsed) * radius, cy + Math.sin(elapsed) * radius * 0.45, radius * 0.15, 0, Math.PI * 2); ctx.fill();
+      } else if (scene.motif === 'burst') {
+        for (let i = 0; i < 12; i++) {
+          const angle = i * Math.PI / 6 + elapsed * 0.12;
+          ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * radius * 1.3, cy + Math.sin(angle) * radius * 1.3, radius * 0.08, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.beginPath(); ctx.arc(cx, cy, radius * pulse, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(cx, cy, radius * pulse, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.filter = 'none';
+    const headline = document.getElementById('overlayText').value.trim() || scene.headline || planState.title;
+    const pad = width * 0.075;
+    const baseline = height * 0.76;
+    const fontSize = Math.max(30, Math.min(width * 0.075, height * 0.1));
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
+    const lines = wrapText(ctx, headline, width - pad * 2, 2);
+    lines.forEach((line, index) => ctx.fillText(line, pad, baseline + index * fontSize * 1.15));
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = document.getElementById('accentColor').value;
+    ctx.font = `500 ${Math.max(18, fontSize * 0.3)}px Arial, sans-serif`;
+    ctx.fillText(scene.subheadline || planState.description, pad, baseline + lines.length * fontSize * 1.15 + fontSize * 0.5, width - pad * 2);
+    ctx.restore();
+    document.getElementById('sceneLabel').textContent = sourceType === 'motion' ? `Scene ${sceneIndex + 1} of ${scenes.length}` : (sourceType === 'video' ? 'Editing source video' : 'Animating source image');
+    animationFrame = requestAnimationFrame(drawFrame);
+  }
+
+  function wrapText(context, text, maxWidth, maxLines) {
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word;
+      if (context.measureText(next).width > maxWidth && line) {
+        lines.push(line); line = word;
+        if (lines.length === maxLines) break;
+      } else line = next;
+    }
+    if (line && lines.length < maxLines) lines.push(line);
+    return lines;
+  }
+
+  function getClipRange() {
+    const start = Math.max(0, Number(document.getElementById('trimStart').value) || 0);
+    const requestedEnd = Number(document.getElementById('trimEnd').value);
+    const end = Number.isFinite(requestedEnd) && requestedEnd > start ? requestedEnd : (Number.isFinite(video.duration) ? video.duration : start + 1);
+    return {start, end};
+  }
+
+  async function startPreview() {
+    playing = true;
+    previewStart = performance.now();
+    if (sourceType === 'video') {
+      const {start, end} = getClipRange();
+      video.currentTime = start;
+      await video.play();
+      video.ontimeupdate = () => { if (video.currentTime >= end) stopPreview(); };
+    }
+    if (sourceType !== 'video') {
+      const duration = Math.max(3, Number(document.getElementById('studioDuration').value) || 15);
+      window.setTimeout(() => { if (playing && sourceType !== 'video') stopPreview(); }, duration * 1000);
+    }
+  }
+
+  function stopPreview() {
+    playing = false;
+    if (!video.paused) video.pause();
+  }
+
+  canvasSize();
+  drawFrame();
+  document.getElementById('aspectRatio').addEventListener('change', canvasSize);
+
+  async function loadVideoSource(url) {
+    stopPreview();
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+    renderedVideoUrl = url;
+    fileInput.value = '';
+    image.removeAttribute('src');
+    sourceType = 'video';
+    video.src = url;
+    video.onloadedmetadata = () => {
+      document.getElementById('trimStart').value = '0';
+      document.getElementById('trimEnd').value = video.duration.toFixed(1);
+      trimControls.classList.remove('d-none');
+    };
+
+    // Activate the main video player
+    const player = document.getElementById('studioActivePlayer');
+    if (player) {
+      player.src = url;
+      player.classList.remove('d-none');
+      canvas.classList.add('d-none');
+      player.play().catch(() => {});
+    }
+
+    document.getElementById('savePortfolio').disabled = false;
+    document.getElementById('portfolioLink').classList.add('d-none');
+    document.getElementById('sceneLabel').textContent = 'Video playback (rendered MP4)';
+  }
+
+  document.getElementById('createMoviepyVideo').addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const status = document.getElementById('creationStatus');
+    const prompt = document.getElementById('creationPrompt').value.trim();
+    if (!prompt) { status.textContent = 'Describe your video first.'; return; }
+    button.disabled = true;
+    status.innerHTML = '<span class="spinner-border spinner-border-sm me-1 text-info"></span> MoviePy is creating your video with visual imagery…';
+    try {
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('duration', document.getElementById('creationDuration').value);
+      formData.append('aspect_ratio', document.getElementById('creationRatio').value);
+      formData.append('accent', document.getElementById('accentColor').value);
+
+      const creationImg = document.getElementById('creationImage');
+      const imageFile = (creationImg && creationImg.files[0]) || (fileInput.files[0] && fileInput.files[0].type.startsWith('image/') ? fileInput.files[0] : null);
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      const response = await fetch("{{ url_for('studio.moviepy_create') }}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content},
+        body: formData
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'MoviePy could not create the video.');
+      await loadVideoSource(data.video_url);
+      document.getElementById('aspectRatio').value = document.getElementById('creationRatio').value;
+      canvasSize();
+      document.getElementById('projectTitle').value = prompt.slice(0, 150);
+      document.getElementById('savePortfolio').disabled = false;
+      const download = document.createElement('a');
+      download.href = data.video_url;
+      download.download = `${(document.getElementById('projectTitle').value || 'creator-showcase').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()}.mp4`;
+      download.click();
+      status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Video created with visual imagery! Playing preview above.</span>';
+    } catch (error) {
+      status.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${error.message}</span>`;
+    }
+    finally { button.disabled = false; }
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    stopPreview();
+    const player = document.getElementById('studioActivePlayer');
+    if (player) {
+      player.pause();
+      player.classList.add('d-none');
+    }
+    canvas.classList.remove('d-none');
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(file);
+    document.getElementById('savePortfolio').disabled = true;
+    document.getElementById('portfolioLink').classList.add('d-none');
+    if (file.type.startsWith('video/')) {
+      sourceType = 'video';
+      image.removeAttribute('src');
+      video.src = objectUrl;
+      video.onloadedmetadata = () => {
+        document.getElementById('trimEnd').value = video.duration.toFixed(1);
+        trimControls.classList.remove('d-none');
+      };
+    } else if (file.type.startsWith('image/')) {
+      sourceType = 'image';
+      video.pause(); video.removeAttribute('src'); video.load();
+      image.src = objectUrl;
+      trimControls.classList.add('d-none');
+    }
+  });
+
+  document.getElementById('makeStoryboard').addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const concept = document.getElementById('studioConcept').value.trim();
+    if (!concept) { document.getElementById('storyboardStatus').textContent = 'Describe your idea first.'; return; }
+    button.disabled = true;
+    const player = document.getElementById('studioActivePlayer');
+    if (player) {
+      player.pause();
+      player.classList.add('d-none');
+    }
+    canvas.classList.remove('d-none');
+    document.getElementById('storyboardStatus').textContent = 'Ollama is planning your scenes…';
+    try {
+      const response = await fetch("{{ url_for('studio.storyboard') }}", {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content},
+        body: JSON.stringify({concept})
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not create a storyboard.');
+      Object.assign(planState, data.plan);
+      if (!fileInput.files.length) {
+        sourceType = 'motion';
+        video.pause(); image.removeAttribute('src');
+      }
+      document.getElementById('overlayText').value = planState.title;
+      document.getElementById('projectTitle').value = planState.title;
+      document.getElementById('projectDescription').value = planState.description;
+      document.getElementById('storyboardStatus').textContent = data.plan.ai_generated
+        ? `Storyboard created with ${data.model}. Preview it or export your motion graphic.`
+        : 'Ollama could not create a scene plan, so a starter storyboard was loaded. You can still edit and export it.';
+    } catch (error) {
+      document.getElementById('storyboardStatus').textContent = error.message;
+    } finally { button.disabled = false; }
+  });
+
+  document.getElementById('previewVideo').addEventListener('click', () => {
+    const player = document.getElementById('studioActivePlayer');
+    if (player && !player.classList.contains('d-none')) {
+      player.play().catch((error) => { document.getElementById('exportStatus').textContent = error.message; });
+    } else {
+      startPreview().catch((error) => { document.getElementById('exportStatus').textContent = error.message; });
+    }
+  });
+  document.getElementById('stopVideo').addEventListener('click', () => {
+    const player = document.getElementById('studioActivePlayer');
+    if (player && !player.classList.contains('d-none')) {
+      player.pause();
+    }
+    stopPreview();
+  });
+
+  async function exportWithMoviePy(button) {
+    button.disabled = true;
+    stopPreview();
+    const status = document.getElementById('exportStatus');
+    status.innerHTML = '<span class="spinner-border spinner-border-sm me-1 text-info"></span> MoviePy is rendering an MP4…';
+    try {
+      const csrf = document.querySelector('meta[name="csrf-token"]').content;
+      let response;
+      if (sourceType === 'video') {
+        const body = new FormData();
+        const file = fileInput.files[0];
+        if (file) body.append('video', file);
+        else if (renderedVideoUrl) {
+          const existing = await fetch(renderedVideoUrl);
+          if (!existing.ok) throw new Error('Could not load the selected video.');
+          body.append('video', new File([await existing.blob()], 'creator-video.mp4', {type: 'video/mp4'}));
+        } else throw new Error('Select a video clip first.');
+        body.append('start', document.getElementById('trimStart').value || '0');
+        body.append('end', document.getElementById('trimEnd').value || '');
+        body.append('title', document.getElementById('overlayText').value);
+        body.append('brightness', String(Number(document.getElementById('brightness').value) / 100));
+        response = await fetch("{{ url_for('studio.moviepy_render') }}", {method: 'POST', headers: {'X-CSRFToken': csrf}, body});
+      } else {
+        const prompt = document.getElementById('overlayText').value.trim() || document.getElementById('creationPrompt').value.trim() || planState.title;
+        const creationImg = document.getElementById('creationImage');
+        const imageFile = (sourceType === 'image' && fileInput.files[0]) || (creationImg && creationImg.files[0]) || null;
+        const body = new FormData();
+        if (imageFile) {
+          body.append('image', imageFile);
+        }
+        body.append('prompt', prompt);
+        body.append('duration', document.getElementById('creationDuration').value || document.getElementById('studioDuration').value);
+        body.append('aspect_ratio', document.getElementById('aspectRatio').value);
+        body.append('accent', document.getElementById('accentColor').value);
+        response = await fetch("{{ url_for('studio.moviepy_create') }}", {method: 'POST', headers: {'X-CSRFToken': csrf}, body});
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'MoviePy could not render the video.');
+      await loadVideoSource(data.video_url);
+      document.getElementById('savePortfolio').disabled = false;
+      const download = document.createElement('a');
+      download.href = data.video_url;
+      download.download = `${(document.getElementById('projectTitle').value || 'creator-showcase').replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()}.mp4`;
+      download.click();
+      status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> MoviePy rendered the MP4 with visual imagery! Playing preview above.</span>';
+    } catch (error) { status.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${error.message}</span>`; }
+    finally { button.disabled = false; }
+  }
+
+  document.getElementById('exportVideo').addEventListener('click', (event) => exportWithMoviePy(event.currentTarget));
+
+  document.getElementById('savePortfolio').addEventListener('click', async (event) => {
+    if (!renderedVideoUrl) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    const body = new FormData();
+    try {
+      const exported = await fetch(renderedVideoUrl);
+      if (!exported.ok) throw new Error('Could not load the rendered video.');
+      body.append('video', new File([await exported.blob()], 'creator-showcase.mp4', {type: 'video/mp4'}));
+    } catch (error) {
+      button.disabled = false;
+      document.getElementById('exportStatus').textContent = error.message;
+      return;
+    }
+    body.append('title', document.getElementById('projectTitle').value.trim());
+    body.append('description', document.getElementById('projectDescription').value.trim());
+    body.append('aspect_ratio', document.getElementById('aspectRatio').value);
+    body.append('resolution', `${canvas.width}x${canvas.height}`);
+    try {
+      const response = await fetch("{{ url_for('studio.publish_video') }}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content},
+        body
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not save the video.');
+      const portfolioLink = document.getElementById('portfolioLink');
+      portfolioLink.href = data.url;
+      portfolioLink.classList.remove('d-none');
+      document.getElementById('exportStatus').textContent = 'Video saved to your portfolio.';
+    } catch (error) {
+      document.getElementById('exportStatus').textContent = error.message;
+    } finally { button.disabled = false; }
+  });
+})();
+</script>
+{% endblock %}

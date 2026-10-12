@@ -3,13 +3,22 @@ from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+def _database_url(default=None):
+    url = os.environ.get('SUPABASE_DATABASE_URL') or os.environ.get('DATABASE_URL') or default
+    if url and url.startswith('postgres://'):
+        return 'postgresql+psycopg://' + url[len('postgres://'):]
+    if url and url.startswith('postgresql://'):
+        return 'postgresql+psycopg://' + url[len('postgresql://'):]
+    return url
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'creatora-dev-super-secret-key-change-in-prod-2025')
+    BASE_DIR = BASE_DIR  # expose to current_app.config
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Upload configurations
+    # No Flask upload cap; hosting layers can still impose one.
+    MAX_CONTENT_LENGTH = None
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
-    MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32 MB max file size
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
     ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
     ALLOWED_DOCUMENT_EXTENSIONS = {'pdf', 'docx', 'zip'}
@@ -20,10 +29,13 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     
     # AI service configuration
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+    OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+    OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'gemma3:1b')
+    ADMIN_REGISTRATION_KEY = os.environ.get('ADMIN_REGISTRATION_KEY', 'creatora-admin-2025')
     AI_FALLBACK_MODE = os.environ.get('AI_FALLBACK_MODE', 'true').lower() == 'true'
     LOW_COST_MODE = os.environ.get('LOW_COST_MODE', 'true').lower() == 'true'
-    AI_DAILY_LIMIT_PER_USER = int(os.environ.get('AI_DAILY_LIMIT_PER_USER', '50'))
+    AI_DAILY_LIMIT_PER_USER = int(os.environ.get('AI_DAILY_LIMIT_PER_USER', '0'))
+    USD_TO_INR = float(os.environ.get('USD_TO_INR', '96.20'))
 
     # Matching Weights Configuration (Normalized to 1.0)
     MATCH_WEIGHTS = {
@@ -38,12 +50,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'creatora.db')}")
+    SQLALCHEMY_DATABASE_URI = _database_url(f"sqlite:///{os.path.join(BASE_DIR, 'creatora.db')}")
     SESSION_COOKIE_SECURE = False
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'creatora.db')}")
+    SQLALCHEMY_DATABASE_URI = _database_url()
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Strict'
 

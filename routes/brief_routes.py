@@ -70,7 +70,7 @@ def create_brief():
         preferred_ai_tools = request.form.get('preferred_ai_tools', '').strip()
         budget_min = float(request.form.get('budget_min', 500))
         budget_max = float(request.form.get('budget_max', 1500))
-        currency = request.form.get('currency', 'USD').strip()
+        currency = 'INR'
         delivery_schedule = request.form.get('delivery_schedule', '').strip()
         commercial_use_required = bool(request.form.get('commercial_use_required', True))
         usage_duration = request.form.get('usage_duration', '').strip()
@@ -291,7 +291,7 @@ def export_brief_pdf(brief_id):
             ['Deliverables Count', str(brief.deliverables_count)],
             ['Required AI Skills', brief.required_skills or 'Standard AI pipeline'],
             ['Preferred AI Tools', brief.preferred_ai_tools or 'Generative video/stills'],
-            ['Budget Range', f"${brief.budget_min:,.0f} - ${brief.budget_max:,.0f} {brief.currency}"],
+            ['Budget Range', f"₹{brief.budget_min:,.0f} - ₹{brief.budget_max:,.0f} {brief.currency}"],
             ['Delivery Schedule', brief.delivery_schedule or 'Standard 7 days'],
             ['Commercial Rights', 'Required — Full Paid Advertising' if brief.commercial_use_required else 'Organic only']
         ]

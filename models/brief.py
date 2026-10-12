@@ -28,9 +28,9 @@ class CreativeBrief(db.Model):
     preferred_ai_tools = db.Column(db.Text, default='Midjourney v6, Runway Gen-3, ElevenLabs')
     
     # Budget & Timelines
-    budget_min = db.Column(db.Float, default=500.0)
-    budget_max = db.Column(db.Float, default=1500.0)
-    currency = db.Column(db.String(10), default='USD')
+    budget_min = db.Column(db.Float, default=50000.0)
+    budget_max = db.Column(db.Float, default=150000.0)
+    currency = db.Column(db.String(10), default='INR')
     deadline = db.Column(db.DateTime, nullable=True)
     delivery_schedule = db.Column(db.String(150), default='Initial draft within 4 days, final cut in 7 days')
     

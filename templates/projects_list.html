@@ -21,7 +21,7 @@
               <span class="badge badge-creatora {% if proj.status == 'Completed' %}badge-verified{% elif proj.status == 'Revisions Requested' %}badge-pending{% else %}badge-cyan-soft{% endif %}">
                 {{ proj.status }}
               </span>
-              <span class="text-success fw-bold">${{ "%.0f"|format(proj.agreed_budget) }}</span>
+              <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(proj.agreed_budget) }}</span>
             </div>
 
             <h4 class="h5 text-white fw-bold mb-2">

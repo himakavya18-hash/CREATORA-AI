@@ -21,8 +21,8 @@ class CreatorProfile(db.Model):
     
     # Availability & Rates
     availability_status = db.Column(db.String(50), default='Available', index=True) # Available, Busy, On Leave
-    hourly_rate_min = db.Column(db.Float, default=250.0)
-    hourly_rate_max = db.Column(db.Float, default=1500.0)
+    hourly_rate_min = db.Column(db.Float, default=24000.0)
+    hourly_rate_max = db.Column(db.Float, default=144000.0)
     preferred_rate_unit = db.Column(db.String(50), default='per project')
     
     # Metadata

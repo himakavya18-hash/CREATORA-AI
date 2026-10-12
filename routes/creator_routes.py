@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort
 from flask_login import login_required, current_user
-from models import db, User, CreatorProfile, PortfolioItem, PortfolioTool, CreativeBrief, Application, Project, SavedCampaign, SavedCreator
+from models import db, User, CreatorProfile, PortfolioItem, PortfolioTool, CreativeBrief, Application, Project, SavedCampaign, SavedCreator, VerificationRecord
 from routes.auth_routes import creator_required
 from services import AIService, VerificationService, PortfolioService, LicensingService
 
@@ -106,6 +106,8 @@ def edit_profile():
 @creator_bp.route('/creators')
 def list_creators():
     """Smart Creator Search and Filtering."""
+    if current_user.is_authenticated and current_user.is_creator:
+        return redirect(url_for('creator.dashboard'))
     query = request.args.get('q', '').strip()
     skill_filter = request.args.get('skill', '').strip()
     specialization_filter = request.args.get('specialization', '').strip()
@@ -155,7 +157,7 @@ def list_creators():
     else:
         # Relevance: verified first, then updated recently
         base_query = base_query.order_by(
-            CreatorProfile.verification_status == 'Verified',
+            (CreatorProfile.verification_status == 'Verified').desc(),
             CreatorProfile.updated_at.desc()
         )
 
@@ -203,7 +205,7 @@ def public_profile(creator_id):
 @creator_required
 def verification():
     profile = current_user.creator_profile
-    latest_record = profile.verification_records.order_by(db.desc('id')).first()
+    latest_record = profile.verification_records.order_by(VerificationRecord.id.desc()).first()
 
     if request.method == 'POST':
         evidence_links = request.form.get('evidence_links', '').strip()

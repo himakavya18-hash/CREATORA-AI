@@ -54,7 +54,7 @@
               <label for="campaignTitle" class="form-label">Campaign Title *</label>
               <input type="text" class="form-control" id="campaignTitle" name="title" 
                      value="{{ brief.title if brief else (ai_data.title if ai_data else '') }}" 
-                     placeholder="e.g. Aura Glow Hydra-Luxe Serum Video Ad" required>
+                     placeholder="e.g. Your Product Video Ad" required>
             </div>
             <div class="col-md-5">
               <label for="productService" class="form-label">Product / Service Name *</label>
@@ -154,19 +154,19 @@
           <!-- Budget Range -->
           <div class="row g-3 mb-3">
             <div class="col-md-4">
-              <label for="budgetMin" class="form-label">Budget Min ($)</label>
+              <label for="budgetMin" class="form-label">Budget Min (₹)</label>
               <input type="number" class="form-control" id="budgetMin" name="budget_min" 
-                     value="{{ brief.budget_min if brief else (ai_data.suggested_budget_min if ai_data else 600) }}" step="50" required>
+                     value="{{ brief.budget_min if brief else (ai_data.suggested_budget_min if ai_data else 60000) }}" step="1000" required>
             </div>
             <div class="col-md-4">
-              <label for="budgetMax" class="form-label">Budget Max ($)</label>
+              <label for="budgetMax" class="form-label">Budget Max (₹)</label>
               <input type="number" class="form-control" id="budgetMax" name="budget_max" 
-                     value="{{ brief.budget_max if brief else (ai_data.suggested_budget_max if ai_data else 1800) }}" step="50" required>
+                     value="{{ brief.budget_max if brief else (ai_data.suggested_budget_max if ai_data else 180000) }}" step="1000" required>
             </div>
             <div class="col-md-4">
               <label for="currency" class="form-label">Currency</label>
               <input type="text" class="form-control" id="currency" name="currency" 
-                     value="{{ brief.currency if brief else 'USD' }}" readonly>
+                     value="&#8377;" readonly>
             </div>
           </div>
 

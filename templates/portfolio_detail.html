@@ -5,10 +5,31 @@
 {% block content %}
 <div class="container py-4">
   
-  <div class="mb-3">
-    <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="small text-muted text-decoration-none">
+  <!-- Back Option at Right End -->
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="btn btn-glass btn-sm">
       <i class="bi bi-arrow-left me-1"></i> Back to {{ item.creator.display_name }}'s Portfolio
     </a>
+  </div>
+
+  <!-- Creator Profile Mini Card -->
+  <div class="d-flex align-items-center gap-3 mb-4 glass-card p-3">
+    <img src="{{ item.creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}"
+         alt="{{ item.creator.display_name }}"
+         class="rounded-circle shadow object-fit-cover"
+         style="width: 52px; height: 52px;"
+         onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+    <div>
+      <h6 class="text-white fw-bold mb-0">
+        <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="text-white text-decoration-none">
+          {{ item.creator.display_name }}
+        </a>
+        {% if item.creator.verification_status == 'Verified' %}
+          <i class="bi bi-patch-check-fill text-success ms-1 small" title="Verified Creator"></i>
+        {% endif %}
+      </h6>
+      <div class="small text-muted">{{ item.creator.specialization }}</div>
+    </div>
   </div>
 
   <div class="row g-4">
@@ -71,27 +92,7 @@
     <!-- Right Column: Specs & Commercial Licensing Assistant -->
     <div class="col-lg-4">
       
-      <!-- Creator Card -->
-      <div class="glass-card p-3 mb-4">
-        <div class="d-flex align-items-center gap-3">
-          <img src="{{ item.creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
-               alt="{{ item.creator.display_name }}" 
-               class="rounded-circle shadow object-fit-cover" 
-               style="width: 52px; height: 52px;"
-               onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
-          <div>
-            <h6 class="text-white fw-bold mb-0">
-              <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="text-white text-decoration-none">
-                {{ item.creator.display_name }}
-              </a>
-              {% if item.creator.verification_status == 'Verified' %}
-                <i class="bi bi-patch-check-fill text-success ms-1 small" title="Verified Creator"></i>
-              {% endif %}
-            </h6>
-            <div class="small text-muted">{{ item.creator.specialization }}</div>
-          </div>
-        </div>
-      </div>
+      <!-- Creator Card moved to top of page -->
 
       <!-- Technical Specifications -->
       <div class="glass-card p-4 mb-4">

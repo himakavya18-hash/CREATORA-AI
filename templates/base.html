@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Creatora AI — Premium AI Content Creator Marketplace connecting leading brands with elite generative AI artists.">
+  <meta name="description" content="Creatora AI — Create. Connect. Collaborate. Premium AI Content Creator Marketplace connecting leading brands with elite generative AI artists.">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}Creatora AI — AI Content Creator Marketplace{% endblock %}</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/creatora-logo.jpg') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/creatora-logo.jpg') }}">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,13 +24,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% if current_user.is_authenticated %}authenticated-page{% else %}guest-page{% endif %}">
 
   <!-- Navigation Bar -->
-  <nav class="navbar navbar-expand-lg navbar-creatora sticky-top" id="mainNavbar">
+  <nav class="navbar navbar-expand-lg navbar-creatora" id="mainNavbar">
     <div class="container-fluid px-lg-5">
-      <a class="navbar-brand navbar-brand-gradient" href="{{ url_for('auth.home') }}">
-        <i class="bi bi-stars"></i> Creatora<span style="color: var(--accent-cyan);">AI</span>
+      <a class="navbar-brand navbar-brand-gradient d-flex align-items-center gap-2" href="{{ url_for('auth.home') }}">
+        <img src="{{ url_for('static', filename='images/creatora-logo.jpg') }}" alt="Creatora AI Logo"
+             style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
+        <span>Creatora<span style="color: var(--accent-cyan);">AI</span></span>
       </a>
       
       <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,16 +42,61 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <!-- Main Links -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+          {% if current_user.is_authenticated %}
+          {% if current_user.is_creator %}
+          <li class="nav-item">
+            <a class="nav-link fw-semibold" href="{{ url_for('creator.dashboard') }}" id="navDashboard">
+              <i class="bi bi-speedometer2 me-1 text-primary"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('creator.public_profile', creator_id=current_user.creator_profile.id if current_user.creator_profile else 1) }}" id="navCreatorProfile">
+              <i class="bi bi-person-badge me-1 text-info"></i> Profile
+            </a>
+          </li>
+          {% elif current_user.is_brand %}
+          <li class="nav-item">
+            <a class="nav-link fw-semibold" href="{{ url_for('brand.dashboard') }}" id="navDashboard">
+              <i class="bi bi-speedometer2 me-1 text-primary"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('brand.edit_profile') }}" id="navAgencyProfile">
+              <i class="bi bi-building me-1 text-info"></i> Agency Profile
+            </a>
+          </li>
+          {% elif current_user.is_admin %}
+          <li class="nav-item">
+            <a class="nav-link fw-semibold" href="{{ url_for('admin.dashboard') }}" id="navDashboard">
+              <i class="bi bi-shield-lock me-1 text-danger"></i> Admin Center
+            </a>
+          </li>
+          {% endif %}
+
+          {% if not current_user.is_creator %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('creator.list_creators') }}" id="navExploreCreators">
               <i class="bi bi-people me-1"></i> Creators
             </a>
           </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('brief.list_briefs') }}" id="navBrowseBriefs">
               <i class="bi bi-briefcase me-1"></i> Campaigns
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('support.help_page') }}" id="navHelp">
+              <i class="bi bi-question-circle me-1"></i> Help
+            </a>
+          </li>
+          {% if current_user.is_creator %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('studio.video_studio') }}" id="navVideoStudio">
+              <i class="bi bi-camera-reels me-1"></i> Video Studio
+            </a>
+          </li>
+          {% endif %}
           {% if current_user.is_authenticated and current_user.is_brand %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('brief.create_brief') }}" id="navNewBrief">
@@ -58,19 +109,20 @@
             </a>
           </li>
           {% endif %}
+          {% endif %}
         </ul>
 
         <!-- Right Side Nav Actions -->
         <div class="d-flex align-items-center gap-3">
           <!-- Theme Toggle Button -->
           <button class="btn btn-glass p-2 px-3" id="themeToggleBtn" title="Toggle Light / Dark mode" aria-label="Toggle theme">
-            <i class="bi bi-sun-fill text-warning"></i>
+            <i class="bi bi-sun-fill text-warning"></i><span class="ms-1">Theme</span>
           </button>
 
           {% if current_user.is_authenticated %}
             <!-- Notifications Icon -->
             <a href="{{ url_for('notification.list_notifications') }}" class="btn btn-glass position-relative p-2 px-3" id="navNotificationsBtn" title="Notifications">
-              <i class="bi bi-bell"></i>
+              <i class="bi bi-bell"></i><span class="ms-1">Notifications</span>
               {% if unread_notifications_count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                   {{ unread_notifications_count }}
@@ -80,7 +132,7 @@
 
             <!-- Messages Icon -->
             <a href="{{ url_for('messaging.inbox') }}" class="btn btn-glass p-2 px-3" id="navMessagesBtn" title="Direct Messages">
-              <i class="bi bi-chat-dots"></i>
+              <i class="bi bi-chat-dots"></i><span class="ms-1">Messages</span>
             </a>
 
             <!-- User Dropdown Menu -->
@@ -130,10 +182,20 @@
             </div>
           {% else %}
             <!-- Guest Links -->
-            <a href="{{ url_for('auth.login') }}" class="btn btn-glass" id="navLoginBtn">Log In</a>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow" id="navRegisterBtn">
-              Get Started <i class="bi bi-arrow-right"></i>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-glass btn-sm" id="navLoginBtn">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Log In
             </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow btn-sm" id="navRegisterBtn">
+              <i class="bi bi-person-plus me-1"></i>Register
+            </a>
+          {% endif %}
+
+          <!-- Back button at the right end -->
+          {% if request.endpoint not in ['auth.login', 'auth.register', 'admin.login', 'admin.register'] %}
+          <button type="button" class="btn btn-glass btn-sm ms-1" data-fallback-url="{{ url_for('auth.home') }}"
+                  onclick="creatoraGoBack(this)" title="Go back" aria-label="Go back" id="navBackBtn">
+            <i class="bi bi-arrow-left me-1"></i><span>Back</span>
+          </button>
           {% endif %}
         </div>
       </div>
@@ -160,72 +222,21 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
-  <footer class="py-5 mt-5">
-    <div class="container">
-      <div class="row g-4">
-        <div class="col-lg-4 col-md-6">
-          <h4 class="navbar-brand-gradient mb-3">Creatora AI</h4>
-          <p class="text-muted small">
-            The premier AI Content Creator Marketplace. Empowering generative artists and forward-thinking brands to produce world-class commercial campaigns with explainable AI matching and verified compliance.
-          </p>
-          <div class="d-flex gap-3 mt-3">
-            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="GitHub"><i class="bi bi-github"></i></a>
-            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="Discord"><i class="bi bi-discord"></i></a>
-          </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-6">
-          <h6 class="text-white fw-bold mb-3">For Brands</h6>
-          <ul class="list-unstyled text-muted small d-flex flex-column gap-2">
-            <li><a href="{{ url_for('creator.list_creators') }}" class="text-decoration-none text-muted">Discover Creators</a></li>
-            <li><a href="{{ url_for('brief.create_brief') }}" class="text-decoration-none text-muted">Post a Brief</a></li>
-            <li><a href="{{ url_for('brief.ai_builder') }}" class="text-decoration-none text-muted">AI Brief Builder</a></li>
-            <li><a href="{{ url_for('auth.login') }}" class="text-decoration-none text-muted">Enterprise Workspaces</a></li>
-          </ul>
-        </div>
-
-        <div class="col-lg-2 col-md-6">
-          <h6 class="text-white fw-bold mb-3">For Creators</h6>
-          <ul class="list-unstyled text-muted small d-flex flex-column gap-2">
-            <li><a href="{{ url_for('brief.list_briefs') }}" class="text-decoration-none text-muted">Browse Campaigns</a></li>
-            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Creator Showcase</a></li>
-            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Verification Badge</a></li>
-            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Licensing Assistant</a></li>
-          </ul>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <h6 class="text-white fw-bold mb-3">Hackathon Showcase Demo</h6>
-          <div class="p-3 rounded glass-card text-muted small">
-            <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="badge badge-creatora badge-verified">Live Full-Stack</span>
-              <span class="badge badge-creatora badge-primary-soft">Gemini AI</span>
-            </div>
-            <p class="mb-1 text-white-50">Instant demo login credentials available on the login page.</p>
-            <p class="mb-0 text-dim">Powered by Flask, SQLAlchemy, Bootstrap 5 & Google Gemini.</p>
-          </div>
-        </div>
-      </div>
-
-      <hr class="border-secondary my-4">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
-        <div>&copy; {{ current_year }} Creatora AI Inc. All rights reserved. Create. Connect. Collaborate.</div>
-        <div class="d-flex gap-3 mt-2 mt-md-0">
-          <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
-          <a href="#" class="text-muted text-decoration-none">Terms of Service</a>
-          <a href="#" class="text-muted text-decoration-none">Commercial Licensing Guide</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    function creatoraGoBack(button) {
+      try {
+        if (history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) {
+          history.back();
+          return;
+        }
+      } catch (_) {}
+      location.href = button.dataset.fallbackUrl;
+    }
+  </script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

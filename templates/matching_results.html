@@ -27,7 +27,7 @@
 
       <div class="text-md-end">
         <span class="badge badge-creatora badge-cyan-soft fs-6 mb-1">{{ brief.content_category }}</span>
-        <div class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</div>
+        <div class="text-success fw-bold">&#8377; {{ "%.0f"|format(brief.budget_min) }} - &#8377; {{ "%.0f"|format(brief.budget_max) }}</div>
       </div>
     </div>
   </div>
@@ -147,7 +147,7 @@
                       </div>
 
                       <div class="small text-muted">
-                        Rates: <span class="text-success fw-bold">${{ "%.0f"|format(creator.hourly_rate_min) }} - ${{ "%.0f"|format(creator.hourly_rate_max) }}</span> 
+                        Rates: <span class="text-success fw-bold">&#8377; {{ "%.0f"|format(creator.hourly_rate_min) }} - &#8377; {{ "%.0f"|format(creator.hourly_rate_max) }}</span>
                         &bull; Status: <span class="text-white-50">{{ creator.availability_status }}</span>
                       </div>
                     </div>

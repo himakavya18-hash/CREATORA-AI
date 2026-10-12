@@ -28,7 +28,7 @@
           <span><i class="bi bi-building me-1 text-info"></i> Brand: <strong class="text-white">{{ project.brand.company_name }}</strong></span>
           <span><i class="bi bi-person-badge me-1 text-warning"></i> Creator: <strong class="text-white">{{ project.creator.display_name }}</strong></span>
           <span><i class="bi bi-calendar-event me-1 text-danger"></i> Deadline: <strong class="text-white">{{ project.agreed_deadline.strftime('%b %d, %Y') if project.agreed_deadline else 'Ongoing' }}</strong></span>
-          <span><i class="bi bi-cash-coin me-1 text-success"></i> Agreed Budget: <strong class="text-success">${{ "%.0f"|format(project.agreed_budget) }} {{ project.currency }}</strong></span>
+          <span><i class="bi bi-cash-coin me-1 text-success"></i> Agreed Budget: <strong class="text-success">&#8377; {{ "%.0f"|format(project.agreed_budget) }}</strong></span>
         </div>
       </div>
 

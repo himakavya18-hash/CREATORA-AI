@@ -56,7 +56,7 @@ def apply_to_brief(brief_id):
         NotificationService.send_notification(
             user_id=brand_user_id,
             title=f"New Application for '{brief.title}'",
-            message=f"{profile.display_name} submitted a proposal (${proposed_budget:,.0f}).",
+            message=f"{profile.display_name} submitted a proposal (₹{proposed_budget:,.0f}).",
             link=url_for('brief.view_brief', brief_id=brief.id),
             notification_type='application'
         )
