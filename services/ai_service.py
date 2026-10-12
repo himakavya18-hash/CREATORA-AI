@@ -1,6 +1,8 @@
 import json
 import logging
+import os
 import re
+import urllib.error
 import urllib.request
 from flask import current_app
 
@@ -8,31 +10,63 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     @classmethod
-    def _call_ollama(cls, prompt_text, system_instruction=""):
-        """Calls a locally running Ollama server and returns its response text."""
-        try:
-            base_url = current_app.config.get('OLLAMA_BASE_URL', 'http://127.0.0.1:11434').rstrip('/')
-            payload = {
-                'model': current_app.config.get('OLLAMA_MODEL', 'gemma3:1b'),
-                'stream': False,
-                'format': 'json' if 'strict JSON' in system_instruction or 'strict JSON' in prompt_text else None,
-                'messages': ([{'role': 'system', 'content': system_instruction}] if system_instruction else []) +
-                            [{'role': 'user', 'content': prompt_text}],
-            }
-            payload = {key: value for key, value in payload.items() if value is not None}
-            req = urllib.request.Request(
-                f"{base_url}/api/chat", data=json.dumps(payload).encode('utf-8'),
-                headers={'Content-Type': 'application/json'}, method='POST')
-            with urllib.request.urlopen(req, timeout=120) as response:
-                data = json.loads(response.read().decode('utf-8'))
-            return data.get('message', {}).get('content')
-        except Exception as exc:
-            logger.warning("Local Ollama request failed: %s", exc)
+    def _call_groq(cls, prompt_text, system_instruction=""):
+        """Calls Groq Cloud API and returns its response text."""
+        api_key = current_app.config.get('GROQ_API_KEY') or os.environ.get('GROQ_API_KEY', '')
+        if not api_key:
+            logger.warning("GROQ_API_KEY is not configured.")
             return None
+        try:
+            model = current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+            is_json = 'strict JSON' in system_instruction or 'strict JSON' in prompt_text
+
+            messages = []
+            if system_instruction:
+                messages.append({'role': 'system', 'content': system_instruction})
+            messages.append({'role': 'user', 'content': prompt_text})
+
+            payload = {
+                'model': model,
+                'messages': messages,
+                'temperature': 0.7,
+            }
+            if is_json:
+                payload['response_format'] = {'type': 'json_object'}
+
+            req = urllib.request.Request(
+                "https://api.groq.com/openai/v1/chat/completions",
+                data=json.dumps(payload).encode('utf-8'),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {api_key.strip()}',
+                    'User-Agent': 'Creatora-AI/1.0',
+                },
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=60) as response:
+                data = json.loads(response.read().decode('utf-8'))
+            choices = data.get('choices', [])
+            if choices and isinstance(choices, list):
+                return choices[0].get('message', {}).get('content')
+            return None
+        except urllib.error.HTTPError as exc:
+            err_body = ""
+            try:
+                err_body = exc.read().decode('utf-8')
+            except Exception:
+                pass
+            logger.warning("Groq API HTTP error %s: %s", exc.code, err_body or exc)
+            return None
+        except Exception as exc:
+            logger.warning("Groq API request failed: %s", exc)
+            return None
+
+    # Backward compatibility alias
+    _call_ollama = _call_groq
 
     @classmethod
     def chat_support(cls, message, history, role):
-        """Answer platform questions for creators and brands with local Ollama."""
+        """Answer platform questions for creators and brands with Groq AI."""
         system_prompt = (
             "You are Creatora AI Help, a concise support assistant for creators and brand users. "
             "Help with account setup, creator profiles and portfolios, campaign briefs, applications, "
@@ -46,7 +80,7 @@ class AIService:
             who = 'User' if item['role'] == 'user' else 'Help assistant'
             conversation.append(f"{who}: {item['content']}")
         conversation.append(f"User: {message}")
-        return cls._call_ollama('\n'.join(conversation), system_prompt)
+        return cls._call_groq('\n'.join(conversation), system_prompt)
 
     @classmethod
     def create_video_storyboard(cls, concept):
@@ -57,7 +91,7 @@ class AIService:
 {"headline":"short on-screen text","subheadline":"supporting text","background":"#112233","motif":"orbit"},
 {"headline":"short on-screen text","subheadline":"supporting text","background":"#112233","motif":"burst"}]}
 Make it suitable for a polished creator showcase or product video. Keep text concise. Use only hex background colors and the motif names circle, orbit, or burst."""
-        response = cls._call_ollama(concept, system_prompt)
+        response = cls._call_groq(concept, system_prompt)
         parsed = cls._extract_json(response)
         ai_generated = isinstance(parsed, dict) and isinstance(parsed.get('scenes'), list) and len(parsed['scenes']) > 0
         if not isinstance(parsed, dict):
@@ -147,7 +181,7 @@ Output MUST be strict JSON with the following keys:
 }
 Do not invent guaranteed product claims or non-existent constraints.
 """
-        api_response = cls._call_ollama(prompt_text, system_prompt)
+        api_response = cls._call_groq(prompt_text, system_prompt)
         if api_response:
             parsed = cls._extract_json(api_response)
             if parsed and isinstance(parsed, dict) and 'title' in parsed:
@@ -274,7 +308,7 @@ Output MUST be strict JSON:
 }}
 Do NOT invent fake past clients or claims. Be honest and focused on AI production methodology.
 """
-        api_response = cls._call_ollama("Generate proposal", system_prompt)
+        api_response = cls._call_groq("Generate proposal", system_prompt)
         if api_response:
             parsed = cls._extract_json(api_response)
             if parsed and isinstance(parsed, dict) and 'creative_approach' in parsed:
@@ -346,7 +380,7 @@ Return strict JSON:
   "commercial_potential_notes": string
 }}
 """
-        res = cls._call_ollama(prompt)
+        res = cls._call_groq(prompt)
         if res:
             parsed = cls._extract_json(res)
             if parsed and 'enhanced_description' in parsed:

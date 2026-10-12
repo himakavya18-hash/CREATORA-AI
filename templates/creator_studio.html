@@ -14,7 +14,7 @@
   </div>
 
   <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white-50 small">
-    <i class="bi bi-info-circle me-1"></i> MoviePy creates animated title videos from your prompt and renders edits to uploaded clips. Ollama can help draft a storyboard.
+    <i class="bi bi-info-circle me-1"></i> MoviePy creates animated title videos from your prompt and renders edits to uploaded clips. Groq AI can help draft a storyboard.
   </div>
 
   <div class="row g-4">
@@ -41,9 +41,9 @@
         <label for="studioConcept" class="form-label">Video idea</label>
         <textarea id="studioConcept" class="form-control mb-3" rows="4" maxlength="1500" placeholder="A cinematic launch for a new sustainable sneaker. Bold typography, electric blue and warm white."></textarea>
         <button id="makeStoryboard" class="btn btn-primary-glow w-100" type="button">
-          <i class="bi bi-magic me-1"></i> Create with Ollama
+          <i class="bi bi-magic me-1"></i> Create with Groq AI
         </button>
-        <div id="storyboardStatus" class="small text-muted mt-2" role="status">Your installed Ollama model writes the scene plan.</div>
+        <div id="storyboardStatus" class="small text-muted mt-2" role="status">Groq AI writes the scene plan.</div>
       </section>
 
       <section class="glass-card p-3 p-lg-4">
@@ -392,7 +392,7 @@
       player.classList.add('d-none');
     }
     canvas.classList.remove('d-none');
-    document.getElementById('storyboardStatus').textContent = 'Ollama is planning your scenes…';
+    document.getElementById('storyboardStatus').textContent = 'Groq AI is planning your scenes…';
     try {
       const response = await fetch("{{ url_for('studio.storyboard') }}", {
         method: 'POST',
@@ -411,7 +411,7 @@
       document.getElementById('projectDescription').value = planState.description;
       document.getElementById('storyboardStatus').textContent = data.plan.ai_generated
         ? `Storyboard created with ${data.model}. Preview it or export your motion graphic.`
-        : 'Ollama could not create a scene plan, so a starter storyboard was loaded. You can still edit and export it.';
+        : 'Groq AI could not create a scene plan, so a starter storyboard was loaded. You can still edit and export it.';
     } catch (error) {
       document.getElementById('storyboardStatus').textContent = error.message;
     } finally { button.disabled = false; }

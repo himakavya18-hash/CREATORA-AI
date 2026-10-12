@@ -36,7 +36,7 @@ def chat():
     answer = AIService.chat_support(message, safe_history, current_user.role)
     if not answer:
         return jsonify(error=(
-            'The local Ollama service did not respond. Check that Ollama is running '
-            f'and that model "{current_app.config.get("OLLAMA_MODEL", "gemma3:1b")}" is installed.'
+            'The Groq AI service did not respond. Check that your GROQ_API_KEY is configured '
+            f'and that model "{current_app.config.get("GROQ_MODEL", "llama-3.3-70b-versatile")}" is active.'
         )), 503
     return jsonify(answer=answer)

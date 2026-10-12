@@ -28,9 +28,10 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     
-    # AI service configuration
-    OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
-    OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'gemma3:1b')
+    # AI service configuration (Groq Cloud API)
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+    GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+    OLLAMA_MODEL = GROQ_MODEL  # Backward compatibility alias
     ADMIN_REGISTRATION_KEY = os.environ.get('ADMIN_REGISTRATION_KEY', 'creatora-admin-2025')
     AI_FALLBACK_MODE = os.environ.get('AI_FALLBACK_MODE', 'true').lower() == 'true'
     LOW_COST_MODE = os.environ.get('LOW_COST_MODE', 'true').lower() == 'true'
