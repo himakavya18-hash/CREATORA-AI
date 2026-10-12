@@ -10,56 +10,66 @@ logger = logging.getLogger(__name__)
 
 class AIService:
     @classmethod
-    def _call_groq(cls, prompt_text, system_instruction=""):
-        """Calls Groq Cloud API and returns its response text."""
+    def _call_groq(cls, prompt_text, system_instruction="", model=None):
+        """Calls Groq Cloud API and returns its response text with multi-model fallback."""
         api_key = current_app.config.get('GROQ_API_KEY') or os.environ.get('GROQ_API_KEY', '')
         if not api_key:
             logger.warning("GROQ_API_KEY is not configured.")
             return None
-        try:
-            model = current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
-            is_json = 'strict JSON' in system_instruction or 'strict JSON' in prompt_text
 
-            messages = []
-            if system_instruction:
-                messages.append({'role': 'system', 'content': system_instruction})
-            messages.append({'role': 'user', 'content': prompt_text})
+        primary_model = model or current_app.config.get('GROQ_MODEL', 'openai/gpt-oss-120b')
+        candidate_models = [primary_model]
+        for fallback in ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
 
-            payload = {
-                'model': model,
-                'messages': messages,
-                'temperature': 0.7,
-            }
-            if is_json:
-                payload['response_format'] = {'type': 'json_object'}
+        is_json = 'strict JSON' in system_instruction or 'strict JSON' in prompt_text
 
-            req = urllib.request.Request(
-                "https://api.groq.com/openai/v1/chat/completions",
-                data=json.dumps(payload).encode('utf-8'),
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {api_key.strip()}',
-                    'User-Agent': 'Creatora-AI/1.0',
-                },
-                method='POST',
-            )
-            with urllib.request.urlopen(req, timeout=60) as response:
-                data = json.loads(response.read().decode('utf-8'))
-            choices = data.get('choices', [])
-            if choices and isinstance(choices, list):
-                return choices[0].get('message', {}).get('content')
-            return None
-        except urllib.error.HTTPError as exc:
-            err_body = ""
+        messages = []
+        if system_instruction:
+            messages.append({'role': 'system', 'content': system_instruction})
+        messages.append({'role': 'user', 'content': prompt_text})
+
+        for current_model in candidate_models:
             try:
-                err_body = exc.read().decode('utf-8')
-            except Exception:
-                pass
-            logger.warning("Groq API HTTP error %s: %s", exc.code, err_body or exc)
-            return None
-        except Exception as exc:
-            logger.warning("Groq API request failed: %s", exc)
-            return None
+                payload = {
+                    'model': current_model,
+                    'messages': messages,
+                    'temperature': 0.7,
+                }
+                if is_json:
+                    payload['response_format'] = {'type': 'json_object'}
+
+                req = urllib.request.Request(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    data=json.dumps(payload).encode('utf-8'),
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {api_key.strip()}',
+                        'User-Agent': 'Creatora-AI/1.0',
+                    },
+                    method='POST',
+                )
+                with urllib.request.urlopen(req, timeout=60) as response:
+                    data = json.loads(response.read().decode('utf-8'))
+                choices = data.get('choices', [])
+                if choices and isinstance(choices, list):
+                    return choices[0].get('message', {}).get('content')
+            except urllib.error.HTTPError as exc:
+                err_body = ""
+                try:
+                    err_body = exc.read().decode('utf-8')
+                except Exception:
+                    pass
+                logger.warning("Groq API HTTP error %s with model '%s': %s", exc.code, current_model, err_body or exc)
+                # If model not found or deprecated, try next available candidate model
+                if exc.code == 404 or "model_not_found" in err_body or "does not exist" in err_body:
+                    continue
+                return None
+            except Exception as exc:
+                logger.warning("Groq API request failed: %s", exc)
+                return None
+        return None
 
     # Backward compatibility alias
     _call_ollama = _call_groq

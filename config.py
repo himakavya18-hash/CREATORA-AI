@@ -30,7 +30,7 @@ class Config:
     
     # AI service configuration (Groq Cloud API)
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
-    GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+    GROQ_MODEL = os.environ.get('GROQ_MODEL', 'openai/gpt-oss-120b')
     OLLAMA_MODEL = GROQ_MODEL  # Backward compatibility alias
     ADMIN_REGISTRATION_KEY = os.environ.get('ADMIN_REGISTRATION_KEY', 'creatora-admin-2025')
     AI_FALLBACK_MODE = os.environ.get('AI_FALLBACK_MODE', 'true').lower() == 'true'

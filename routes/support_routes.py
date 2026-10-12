@@ -37,6 +37,6 @@ def chat():
     if not answer:
         return jsonify(error=(
             'The Groq AI service did not respond. Check that your GROQ_API_KEY is configured '
-            f'and that model "{current_app.config.get("GROQ_MODEL", "llama-3.3-70b-versatile")}" is active.'
+            f'and that model "{current_app.config.get("GROQ_MODEL", "openai/gpt-oss-120b")}" is active.'
         )), 503
     return jsonify(answer=answer)

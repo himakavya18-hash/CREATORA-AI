@@ -28,7 +28,7 @@ def storyboard():
     if len(concept) > 1500:
         return jsonify(error='Keep your concept under 1,500 characters.'), 400
     plan = AIService.create_video_storyboard(concept)
-    return jsonify(plan=plan, model=current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile'))
+    return jsonify(plan=plan, model=current_app.config.get('GROQ_MODEL', 'openai/gpt-oss-120b'))
 
 
 @studio_bp.route('/creator/studio/moviepy/create', methods=['POST'])
@@ -131,7 +131,7 @@ def publish_video():
         media_url=media_url,
         thumbnail_url='',
         ai_tools_used='Creatora Video Studio, Groq AI',
-        models_used=current_app.config.get('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        models_used=current_app.config.get('GROQ_MODEL', 'openai/gpt-oss-120b'),
         workflow_stages='Groq AI-assisted storyboard; MoviePy motion graphics, editing, and MP4 render',
         output_format=media.filename.rsplit('.', 1)[-1].upper(),
         aspect_ratio=request.form.get('aspect_ratio', '16:9')[:20],
