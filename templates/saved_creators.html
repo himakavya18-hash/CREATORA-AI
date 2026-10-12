@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Shortlisted Creators — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-heart text-danger me-2"></i> Shortlisted AI Creators</h2>
+      <p class="text-muted small mb-0">Creators you have saved for upcoming briefs and collaborations.</p>
+    </div>
+    <a href="{{ url_for('creator.list_creators') }}" class="btn btn-primary-glow btn-sm">
+      <i class="bi bi-search"></i> Discover More
+    </a>
+  </div>
+
+  {% if saved_list %}
+    <div class="row g-4">
+      {% for sc in saved_list %}
+        {% set creator = sc.creator %}
+        <div class="col-md-6 col-lg-4">
+          <div class="glass-card p-4 h-100 d-flex flex-column glass-card-interactive position-relative">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                   alt="{{ creator.display_name }}" 
+                   class="rounded-circle shadow object-fit-cover" 
+                   style="width: 56px; height: 56px;"
+                   onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+              <div>
+                <h5 class="mb-0 text-white fw-bold">
+                  <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="text-white text-decoration-none">
+                    {{ creator.display_name }}
+                  </a>
+                </h5>
+                <div class="small text-muted">{{ creator.specialization }}</div>
+                {% if creator.verification_status == 'Verified' %}
+                  <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
+                    <i class="bi bi-patch-check-fill"></i> Verified
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <p class="text-muted small flex-grow-1 mb-3">
+              {{ creator.bio[:100] }}...
+            </p>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+              <span class="text-success fw-bold small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
+                  View Profile
+                </a>
+                <form method="POST" action="{{ url_for('brand.toggle_save_creator', creator_id=creator.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-glass btn-sm text-danger" title="Remove from shortlist">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="glass-card p-5 text-center text-muted">
+      <i class="bi bi-heart fs-1 d-block mb-3 text-dim"></i>
+      <h4>No Creators Saved Yet</h4>
+      <p class="small text-dim mb-4">Click the heart icon on any creator card to save them to your shortlist.</p>
+      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-primary-glow btn-sm">Explore Creator Directory</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

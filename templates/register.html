@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="glass-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold text-white mb-1">Join Creatora AI</h2>
+          <p class="text-muted small">Choose your path in the AI creative ecosystem</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Role Selector -->
+          <div class="mb-4">
+            <label class="form-label text-center d-block mb-3">Select Your Account Type</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="role" id="roleCreator" value="creator" checked onchange="toggleRoleFields()">
+                <label class="btn btn-glass w-100 p-3 text-start d-flex flex-column gap-1 h-100" for="roleCreator">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-white"><i class="bi bi-stars text-warning me-1"></i> Creator</span>
+                    <i class="bi bi-check-circle-fill text-primary role-check-icon"></i>
+                  </div>
+                  <span class="small text-muted" style="font-size: 0.78rem;">Showcase portfolio, apply for briefs &amp; collaborate.</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="role" id="roleBrand" value="brand" onchange="toggleRoleFields()">
+                <label class="btn btn-glass w-100 p-3 text-start d-flex flex-column gap-1 h-100" for="roleBrand">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-white"><i class="bi bi-building text-info me-1"></i> Brand / Agency</span>
+                    <i class="bi bi-check-circle-fill text-primary role-check-icon"></i>
+                  </div>
+                  <span class="small text-muted" style="font-size: 0.78rem;">Commission AI campaigns, match talent &amp; manage projects.</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Role Name Fields -->
+          <div class="mb-3" id="creatorNameGroup">
+            <label for="displayName" class="form-label">Creator Display Name</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-person"></i></span>
+              <input type="text" class="form-control" id="displayName" name="display_name" placeholder="e.g. Maya Lin Art">
+            </div>
+          </div>
+
+          <div class="mb-3 d-none" id="brandNameGroup">
+            <label for="companyName" class="form-label">Company / Brand Name</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-briefcase"></i></span>
+              <input type="text" class="form-control" id="companyName" name="company_name" placeholder="e.g. Apex Media Labs">
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="registerEmail" class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control" id="registerEmail" name="email" placeholder="name@domain.com" required>
+            </div>
+          </div>
+
+          <!-- Passwords -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="regPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="regPassword" name="password" placeholder="At least 6 chars" minlength="6" required>
+            </div>
+            <div class="col-md-6">
+              <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+              <input type="password" class="form-control" id="regConfirmPassword" name="confirm_password" placeholder="Repeat password" minlength="6" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-glow w-100 py-3 fw-bold" id="submitRegisterBtn">
+            Create Account <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25 small text-muted">
+          Already have an account? 
+          <a href="{{ url_for('auth.login') }}" class="text-info fw-bold text-decoration-none">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleRoleFields() {
+  const isCreator = document.getElementById('roleCreator').checked;
+  const creatorGroup = document.getElementById('creatorNameGroup');
+  const brandGroup = document.getElementById('brandNameGroup');
+
+  if (isCreator) {
+    creatorGroup.classList.remove('d-none');
+    brandGroup.classList.add('d-none');
+  } else {
+    creatorGroup.classList.add('d-none');
+    brandGroup.classList.remove('d-none');
+  }
+}
+</script>
+{% endblock %}

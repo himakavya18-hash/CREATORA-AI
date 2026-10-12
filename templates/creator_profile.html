@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}{{ creator.display_name }} — AI Content Creator Portfolio | Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Profile Hero Banner -->
+  <div class="glass-card p-4 p-md-5 mb-4 position-relative overflow-hidden border-glow">
+    <div class="row align-items-center g-4">
+      <div class="col-md-auto text-center text-md-start">
+        <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+             alt="{{ creator.display_name }}" 
+             class="rounded-circle shadow-lg object-fit-cover border border-2 border-primary" 
+             style="width: 120px; height: 120px;"
+             onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'">
+      </div>
+
+      <div class="col-md">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <h1 class="h2 fw-bold text-white mb-0">{{ creator.display_name }}</h1>
+          {% if creator.verification_status == 'Verified' %}
+            <span class="badge badge-creatora badge-verified">
+              <i class="bi bi-patch-check-fill"></i> Verified Creator
+            </span>
+          {% else %}
+            <span class="badge badge-creatora badge-primary-soft">
+              <i class="bi bi-person"></i> Independent Creator
+            </span>
+          {% endif %}
+          <span class="badge badge-creatora badge-cyan-soft">{{ creator.experience_level }}</span>
+        </div>
+
+        <p class="fs-5 text-white-50 mb-2">{{ creator.headline }}</p>
+
+        <div class="d-flex flex-wrap gap-3 text-muted small">
+          <span><i class="bi bi-geo-alt me-1 text-danger"></i> {{ creator.location or 'Global / Remote' }}</span>
+          <span><i class="bi bi-translate me-1 text-info"></i> {{ creator.languages or 'English' }}</span>
+          <span><i class="bi bi-tag me-1 text-warning"></i> {{ creator.specialization }}</span>
+          <span><i class="bi bi-clock me-1 text-success"></i> {{ creator.availability_status }}</span>
+        </div>
+      </div>
+
+      <!-- Action Column -->
+      <div class="col-md-auto text-md-end">
+        <div class="d-flex flex-column gap-2">
+          <div class="h4 text-success fw-bold mb-1">
+            ${{ "%.0f"|format(creator.hourly_rate_min) }} - ${{ "%.0f"|format(creator.hourly_rate_max) }}
+            <span class="text-muted small fw-normal d-block" style="font-size: 0.8rem;">{{ creator.preferred_rate_unit }}</span>
+          </div>
+
+          {% if current_user.is_authenticated and current_user.is_brand %}
+            <!-- Brand Can Invite Creator or Direct Message -->
+            {% if brand_briefs %}
+              <div class="dropdown">
+                <button class="btn btn-primary-glow btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-send-plus"></i> Invite to Campaign
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary">
+                  {% for b in brand_briefs %}
+                    <li>
+                      <form method="POST" action="{{ url_for('matching.invite_creator', brief_id=b.id, creator_id=creator.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item text-white small">
+                          {{ b.title[:30] }}...
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% else %}
+              <a href="{{ url_for('brief.create_brief') }}" class="btn btn-primary-glow btn-sm">
+                <i class="bi bi-plus-circle"></i> Create Brief to Invite
+              </a>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('messaging.conversation', other_user_id=creator.user_id) }}" class="btn btn-glass btn-sm flex-grow-1">
+                <i class="bi bi-chat-dots"></i> Message
+              </a>
+              <button class="btn btn-glass btn-sm btn-save-creator {% if is_saved %}text-danger{% endif %}" data-creator-id="{{ creator.id }}" title="Save to shortlist">
+                <i class="bi bi-heart{% if is_saved %}-fill{% endif %}"></i>
+              </button>
+            </div>
+          {% elif current_user.is_authenticated and current_user.id == creator.user_id %}
+            <a href="{{ url_for('creator.edit_profile') }}" class="btn btn-glass btn-sm">
+              <i class="bi bi-pencil"></i> Edit Profile
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow btn-sm">
+              <i class="bi bi-briefcase"></i> Hire Creator
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Biography, AI Stack & Verification Info -->
+    <div class="col-lg-4">
+      
+      <!-- Bio Card -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-white mb-3">About Creator</h5>
+        <p class="text-muted small" style="line-height: 1.6;">
+          {{ creator.bio or 'This creator has not added a detailed bio yet.' }}
+        </p>
+      </div>
+
+      <!-- AI Tools & Models Pipeline Stack -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-cpu text-info me-2"></i> Generative Tool Stack</h5>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% for tool in creator.get_tools_list() %}
+            <span class="badge badge-creatora badge-cyan-soft py-1 px-2" style="font-size: 0.78rem;">
+              {{ tool }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Core Skills & Specializations -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-lightning text-warning me-2"></i> Core Skills</h5>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% for skill in creator.get_skills_list() %}
+            <span class="badge badge-creatora badge-primary-soft py-1 px-2" style="font-size: 0.78rem;">
+              {{ skill }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Categories & Formats -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-grid text-purple me-2"></i> Creative Niches</h5>
+        <div class="d-flex flex-wrap gap-2">
+          {% for cat in creator.get_categories_list() %}
+            <span class="badge bg-dark border border-secondary text-white-50 py-1 px-2">
+              {{ cat }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Verification Audit Status Card (Transparent Trust) -->
+      <div class="glass-card p-4">
+        <h5 class="fw-bold text-white mb-2"><i class="bi bi-shield-check text-success me-2"></i> Trust &amp; Verification</h5>
+        <div class="small text-muted mb-2">
+          {% if creator.verification_status == 'Verified' %}
+            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Verified Creator Identity</span>
+            <p class="mt-1 text-dim">Evidence of active AI generative subscriptions and authentic prompt workflows reviewed by Creatora moderators.</p>
+          {% else %}
+            <span class="text-warning fw-bold"><i class="bi bi-info-circle"></i> Self-Declared Profile</span>
+            <p class="mt-1 text-dim">Skills and tools are self-declared by the creator. Creator verification request is in review or not yet submitted.</p>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Portfolio Showcase Gallery -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="h4 fw-bold text-white mb-0">Showcase Projects ({{ items|length }})</h4>
+        {% if current_user.is_authenticated and current_user.id == creator.user_id %}
+          <a href="{{ url_for('creator.add_portfolio_item') }}" class="btn btn-primary-glow btn-sm">
+            <i class="bi bi-plus-lg"></i> Add Project
+          </a>
+        {% endif %}
+      </div>
+
+      {% if items %}
+        <div class="row g-4">
+          {% for item in items %}
+            <div class="col-md-6">
+              <div class="glass-card h-100 d-flex flex-column overflow-hidden glass-card-interactive">
+                <!-- Media Container -->
+                <div class="portfolio-media-container position-relative">
+                  {% if item.media_type == 'video' %}
+                    <video src="{{ item.media_url }}" poster="{{ item.thumbnail_url }}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+                    <span class="media-tag-overlay badge badge-creatora badge-primary-soft">
+                      <i class="bi bi-play-circle-fill"></i> AI Video
+                    </span>
+                  {% else %}
+                    <img src="{{ item.media_url }}" alt="{{ item.title }}" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'">
+                    <span class="media-tag-overlay badge badge-creatora badge-cyan-soft">
+                      <i class="bi bi-image"></i> High-Res Still
+                    </span>
+                  {% endif %}
+                  
+                  <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white" style="font-size: 0.7rem;">
+                    {{ item.aspect_ratio }}
+                  </span>
+                </div>
+
+                <!-- Content -->
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="text-info small fw-semibold">{{ item.category }}</span>
+                    <span class="text-dim small">{{ item.created_at.strftime('%b %Y') }}</span>
+                  </div>
+
+                  <h5 class="text-white fw-bold mb-2">
+                    <a href="{{ url_for('creator.view_portfolio_item', item_id=item.id) }}" class="text-white text-decoration-none">
+                      {{ item.title }}
+                    </a>
+                  </h5>
+
+                  <p class="text-muted small flex-grow-1 mb-3">
+                    {{ item.description[:95] }}...
+                  </p>
+
+                  <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for tool in item.get_tools_list()[:2] %}
+                      <span class="badge bg-black border border-secondary text-white-50" style="font-size: 0.68rem;">{{ tool }}</span>
+                    {% endfor %}
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+                    <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
+                      <i class="bi bi-shield-check"></i> Commercial Ready
+                    </span>
+                    <a href="{{ url_for('creator.view_portfolio_item', item_id=item.id) }}" class="btn btn-glass btn-sm py-1 px-2">
+                      Inspect Pipeline &rarr;
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="glass-card p-5 text-center text-muted">
+          <i class="bi bi-image fs-1 d-block mb-2 text-dim"></i>
+          <h5>No Showcase Projects Uploaded Yet</h5>
+          <p class="small text-dim">This creator has not published public portfolio projects.</p>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

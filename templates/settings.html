@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      
+      <div class="mb-4">
+        <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-gear text-primary me-2"></i> Account Settings</h2>
+        <p class="text-muted small mb-0">Manage your credentials, login security, and account preferences.</p>
+      </div>
+
+      <!-- Change Password -->
+      <div class="glass-card p-4 p-md-5 mb-4">
+        <h4 class="h5 fw-bold text-white mb-3">Change Password</h4>
+        
+        <form method="POST" action="{{ url_for('auth.settings') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="change_password">
+
+          <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-control" name="old_password" required>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-control" name="new_password" minlength="6" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" class="form-control" name="confirm_password" minlength="6" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-glow btn-sm">Update Password</button>
+        </form>
+      </div>
+
+      <!-- Update Email -->
+      <div class="glass-card p-4 p-md-5 mb-4">
+        <h4 class="h5 fw-bold text-white mb-3">Email Address</h4>
+        
+        <form method="POST" action="{{ url_for('auth.settings') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="update_email">
+
+          <div class="mb-3">
+            <label class="form-label">Current Email</label>
+            <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+          </div>
+
+          <button type="submit" class="btn btn-glass btn-sm">Update Email Address</button>
+        </form>
+      </div>
+
+      <!-- Danger Zone / Delete Account -->
+      <div class="glass-card p-4 p-md-5 border-danger border-opacity-50">
+        <h4 class="h5 fw-bold text-danger mb-2"><i class="bi bi-exclamation-octagon me-2"></i> Danger Zone</h4>
+        <p class="text-muted small mb-3">
+          Permanently delete your account, portfolio records, proposals, and message history. This action cannot be undone.
+        </p>
+
+        <form method="POST" action="{{ url_for('auth.delete_account') }}" onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-trash me-1"></i> Delete Account Permanently
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

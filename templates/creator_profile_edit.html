@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Creator Profile — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-card p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="h3 fw-bold text-white mb-1">Edit Creator Profile</h2>
+            <p class="text-muted small mb-0">Update your specialized generative skills, tools, rates, and bio.</p>
+          </div>
+          <span class="badge badge-creatora badge-primary-soft">Strength: {{ profile.portfolio_completeness }}%</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('creator.edit_profile') }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Avatar & Display Name -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-3 text-center">
+              <label class="form-label d-block">Avatar Image</label>
+              <img src="{{ current_user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                   alt="Avatar" class="rounded-circle mb-2 shadow object-fit-cover" style="width: 80px; height: 80px;"
+                   onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+              <input type="file" class="form-control form-control-sm" name="avatar_file" accept="image/*">
+            </div>
+
+            <div class="col-md-9">
+              <div class="mb-3">
+                <label for="displayName" class="form-label">Display Name *</label>
+                <input type="text" class="form-control" id="displayName" name="display_name" value="{{ profile.display_name }}" required>
+              </div>
+              <div>
+                <label for="headline" class="form-label">Professional Headline *</label>
+                <input type="text" class="form-control" id="headline" name="headline" value="{{ profile.headline }}" placeholder="e.g. Senior AI Commercial Director & Cinematographer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <div class="mb-3">
+            <label for="bio" class="form-label">Biography &amp; Creative Philosophy</label>
+            <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Describe your experience, technical pipeline, and aesthetic vision...">{{ profile.bio }}</textarea>
+          </div>
+
+          <!-- Specialization & Experience -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="specialization" class="form-label">Primary Specialization</label>
+              <input type="text" class="form-control" id="specialization" name="specialization" value="{{ profile.specialization }}" placeholder="e.g. Commercial Ads, 3D Motion, Fashion">
+            </div>
+            <div class="col-md-6">
+              <label for="experienceLevel" class="form-label">Experience Level</label>
+              <select class="form-select" id="experienceLevel" name="experience_level">
+                <option value="Beginner" {% if profile.experience_level == 'Beginner' %}selected{% endif %}>Beginner (1+ yrs)</option>
+                <option value="Intermediate" {% if profile.experience_level == 'Intermediate' %}selected{% endif %}>Intermediate (2-4 yrs)</option>
+                <option value="Expert" {% if profile.experience_level == 'Expert' %}selected{% endif %}>Expert (5+ yrs)</option>
+                <option value="Pro Agency" {% if profile.experience_level == 'Pro Agency' %}selected{% endif %}>Pro Agency / Studio</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Skills & AI Tools -->
+          <div class="mb-3">
+            <label for="skills" class="form-label">Skills (Comma-separated)</label>
+            <input type="text" class="form-control" id="skills" name="skills" value="{{ profile.skills }}" placeholder="Runway Gen-3, Midjourney v6, Latent Inpainting, Topaz Video AI, Color Grading">
+            <div class="form-text text-dim">Used by the explainable matching algorithm to calculate match confidence.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="aiTools" class="form-label">Preferred AI Tools &amp; Models (Comma-separated)</label>
+            <input type="text" class="form-control" id="aiTools" name="ai_tools" value="{{ profile.ai_tools }}" placeholder="Midjourney v6.1, Runway Gen-3, Kling 1.5, ElevenLabs, Flux.1 Pro">
+          </div>
+
+          <!-- Content Categories & Project Types -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="contentCategories" class="form-label">Content Categories</label>
+              <input type="text" class="form-control" id="contentCategories" name="content_categories" value="{{ profile.content_categories }}" placeholder="Beauty & Cosmetics, Tech, Fashion, Gaming">
+            </div>
+            <div class="col-md-6">
+              <label for="projectTypes" class="form-label">Preferred Project Types</label>
+              <input type="text" class="form-control" id="projectTypes" name="project_types" value="{{ profile.project_types }}" placeholder="Short-form Video, Concept Art, 3D Product Teaser">
+            </div>
+          </div>
+
+          <!-- Rates & Availability -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="rateMin" class="form-label">Min Budget/Rate ($)</label>
+              <input type="number" class="form-control" id="rateMin" name="hourly_rate_min" value="{{ profile.hourly_rate_min }}" step="50">
+            </div>
+            <div class="col-md-4">
+              <label for="rateMax" class="form-label">Max Budget/Rate ($)</label>
+              <input type="number" class="form-control" id="rateMax" name="hourly_rate_max" value="{{ profile.hourly_rate_max }}" step="50">
+            </div>
+            <div class="col-md-4">
+              <label for="availabilityStatus" class="form-label">Availability</label>
+              <select class="form-select" id="availabilityStatus" name="availability_status">
+                <option value="Available" {% if profile.availability_status == 'Available' %}selected{% endif %}>Available Now</option>
+                <option value="Busy" {% if profile.availability_status == 'Busy' %}selected{% endif %}>Busy with Projects</option>
+                <option value="On Leave" {% if profile.availability_status == 'On Leave' %}selected{% endif %}>On Leave</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Languages & Location -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="languages" class="form-label">Languages</label>
+              <input type="text" class="form-control" id="languages" name="languages" value="{{ profile.languages }}" placeholder="English, French, German">
+            </div>
+            <div class="col-md-6">
+              <label for="location" class="form-label">Location / Timezone</label>
+              <input type="text" class="form-control" id="location" name="location" value="{{ profile.location }}" placeholder="e.g. London, UK / Remote">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('creator.dashboard') }}" class="btn btn-glass">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow px-4">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

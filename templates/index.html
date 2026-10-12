@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Creatora AI — AI Content Creator Marketplace | Create. Connect. Collaborate.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-gradient text-center">
+  <div class="container">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-4 glass-card border-glow">
+      <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> AI-Powered</span>
+      <span class="small text-white-50">Connecting Generative Artists & World-Class Brands</span>
+    </div>
+
+    <h1 class="hero-title">
+      Where Elite AI Creators &amp; <br>
+      <span style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Visionary Brands</span> Collaborate
+    </h1>
+
+    <p class="hero-subtitle">
+      Showcase generative video and photorealistic artwork. Discover specialized creators with explainable AI matching, verified commercial licensing, and structured milestone workspaces.
+    </p>
+
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-primary-glow px-4 py-3 fs-5" id="heroExploreCreatorsBtn">
+        <i class="bi bi-search"></i> Explore Creators
+      </a>
+      {% if current_user.is_authenticated and current_user.is_brand %}
+        <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-glass px-4 py-3 fs-5" id="heroAIBriefBtn">
+          <i class="bi bi-magic text-warning"></i> AI Brief Builder
+        </a>
+      {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-glass px-4 py-3 fs-5" id="heroJoinMarketplaceBtn">
+          <i class="bi bi-sparkles text-info"></i> Join as Creator or Brand
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Platform Highlights Bar -->
+    <div class="row g-4 mt-5 justify-content-center">
+      <div class="col-lg-3 col-6">
+        <div class="stat-widget text-center">
+          <div class="display-6 fw-bold text-white mb-1">{{ creators_count or '120+' }}</div>
+          <div class="text-muted small text-uppercase fw-semibold">Vetted AI Creators</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="stat-widget text-center">
+          <div class="display-6 fw-bold text-info mb-1">{{ briefs_count or '45+' }}</div>
+          <div class="text-muted small text-uppercase fw-semibold">Active Briefs</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="stat-widget text-center">
+          <div class="display-6 fw-bold text-purple mb-1" style="color: #c084fc;">{{ portfolio_count or '350+' }}</div>
+          <div class="text-muted small text-uppercase fw-semibold">Showcase Projects</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="stat-widget text-center">
+          <div class="display-6 fw-bold text-success mb-1">98.4%</div>
+          <div class="text-muted small text-uppercase fw-semibold">Match Satisfaction</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Core Innovations Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Engineered For Generative Media</h6>
+      <h2 class="display-5 fw-bold text-white">Why Creatora AI Leads the Industry</h2>
+      <p class="text-muted mx-auto" style="max-width: 600px;">
+        Traditional freelance networks lack AI tool comprehension. Creatora is built specifically for generative pipelines, prompt architectures, and legal compliance.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-primary bg-opacity-25 text-primary mb-3">
+            <i class="bi bi-cpu fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">Explainable AI Matching</h4>
+          <p class="text-muted small">
+            Hybrid ranking engine using 7 normalized weighted factors: skills, portfolio depth, specialization, tools, format, budget, and availability with transparent score breakdowns.
+          </p>
+          <span class="badge badge-creatora badge-primary-soft">7 Weighted Factors</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-info bg-opacity-25 text-info mb-3">
+            <i class="bi bi-magic fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">AI Campaign Brief Builder</h4>
+          <p class="text-muted small">
+            Transforms informal concepts like "I need an AI skincare video" into structured, production-ready creative briefs with deliverables, aspect ratios, and acceptance criteria.
+          </p>
+          <span class="badge badge-creatora badge-cyan-soft">Gemini Powered</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-success bg-opacity-25 text-success mb-3">
+            <i class="bi bi-shield-check fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">Commercial Licensing Assistant</h4>
+          <p class="text-muted small">
+            Automated verification of generative engine terms (Midjourney, Runway Gen-3, ElevenLabs, Kling) and declared assets for commercial broadcast compliance.
+          </p>
+          <span class="badge badge-creatora badge-verified">Legal Safety Audit</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-warning bg-opacity-25 text-warning mb-3">
+            <i class="bi bi-kanban fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">Collaboration Workspace</h4>
+          <p class="text-muted small">
+            Full project lifecycle workspace featuring milestones, draft version control, video preview player, feedback threads, and final deliverables sign-off.
+          </p>
+          <span class="badge badge-creatora badge-pending">Version Controlled</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-danger bg-opacity-25 text-danger mb-3">
+            <i class="bi bi-patch-check fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">Creator Verification System</h4>
+          <p class="text-muted small">
+            Independent human review of portfolio evidence, prompt methodology, and generative tool subscriptions to award verified creator badges.
+          </p>
+          <span class="badge badge-creatora badge-verified">Moderated Trust</span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 glass-card-interactive">
+          <div class="stat-icon bg-purple bg-opacity-25 text-purple mb-3" style="color: #a855f7;">
+            <i class="bi bi-file-earmark-pdf fs-3"></i>
+          </div>
+          <h4 class="text-white mb-2">AI Proposals &amp; PDF Export</h4>
+          <p class="text-muted small">
+            Creators draft custom proposals in seconds using AI synthesis, and brands can export complete brief specifications as high-resolution PDF documents.
+          </p>
+          <span class="badge badge-creatora badge-primary-soft">One-Click PDF</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Creators Spotlight -->
+<section class="py-5 bg-surface">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Elite Talent</h6>
+        <h2 class="h2 fw-bold text-white mb-0">Featured AI Content Creators</h2>
+      </div>
+      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm">
+        View All Creators <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for creator in featured_creators %}
+      <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-3 h-100 d-flex flex-column glass-card-interactive">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                 alt="{{ creator.display_name }}" 
+                 class="rounded-circle object-fit-cover shadow" 
+                 style="width: 56px; height: 56px;"
+                 onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+            <div>
+              <h5 class="mb-0 text-white fw-bold">{{ creator.display_name }}</h5>
+              <div class="small text-muted">{{ creator.specialization or 'AI Creator' }}</div>
+              {% if creator.verification_status == 'Verified' %}
+                <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
+                  <i class="bi bi-patch-check-fill"></i> Verified
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <p class="text-muted small flex-grow-1" style="line-height: 1.4;">
+            {{ creator.bio[:110] }}{% if creator.bio|length > 110 %}...{% endif %}
+          </p>
+
+          <div class="mb-3">
+            <div class="d-flex flex-wrap gap-1">
+              {% for tool in creator.get_tools_list()[:3] %}
+                <span class="badge bg-dark border border-secondary text-white-50" style="font-size: 0.7rem;">{{ tool }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+            <div>
+              <span class="text-muted small">Rate:</span>
+              <span class="fw-bold text-white small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
+            </div>
+            <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
+              Portfolio <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Recent Campaign Briefs Showcase -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+      <div>
+        <h6 class="text-info text-uppercase fw-bold letter-spacing-2">Live Opportunities</h6>
+        <h2 class="h2 fw-bold text-white mb-0">Active Creative Campaigns</h2>
+      </div>
+      <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-glass btn-sm">
+        Explore All Briefs <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for brief in recent_briefs %}
+      <div class="col-lg-4 col-md-6">
+        <div class="glass-card p-4 h-100 d-flex flex-column glass-card-interactive">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge badge-creatora badge-cyan-soft">{{ brief.content_category }}</span>
+            <span class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span>
+          </div>
+
+          <h4 class="text-white fw-bold mb-2">{{ brief.title }}</h4>
+          <div class="small text-muted mb-3">
+            <i class="bi bi-building me-1"></i> {{ brief.brand.company_name }}
+          </div>
+
+          <p class="text-muted small flex-grow-1">
+            {{ brief.description[:130] }}...
+          </p>
+
+          <div class="p-2 rounded bg-black bg-opacity-30 mb-3 small d-flex justify-content-between text-muted">
+            <span><i class="bi bi-aspect-ratio me-1"></i> {{ brief.aspect_ratio }}</span>
+            <span><i class="bi bi-camera-reels me-1"></i> {{ brief.content_type }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+            <span class="small text-dim"><i class="bi bi-clock me-1"></i> {{ brief.created_at.strftime('%b %d') }}</span>
+            <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="btn btn-glass btn-sm">
+              View Brief &amp; Apply <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Ready to Launch Call-to-Action -->
+<section class="py-5 text-center position-relative">
+  <div class="container">
+    <div class="glass-card p-5 border-glow animate-glow position-relative overflow-hidden">
+      <div class="position-relative z-2">
+        <h2 class="display-5 fw-bold text-white mb-3">Accelerate Your Next AI Campaign</h2>
+        <p class="text-muted mx-auto mb-4" style="max-width: 650px;">
+          Whether you're an AI director producing next-generation commercial spots or a brand seeking viral visual identity, Creatora AI brings structure, trust, and speed.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow px-4 py-3 fs-5">
+            Create Free Account <i class="bi bi-arrow-right"></i>
+          </a>
+          <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass px-4 py-3 fs-5">
+            Browse Portfolios
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

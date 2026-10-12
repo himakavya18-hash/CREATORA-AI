@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}{% if brief %}Edit{% else %}Create{% endif %} Campaign Brief — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      
+      <!-- AI Synthesized Alert if generated via AI Brief Builder -->
+      {% if ai_data %}
+        <div class="glass-card p-4 mb-4 border-glow">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-magic"></i> AI Brief Synthesis Completed</span>
+            <span class="small text-muted">Review, refine and confirm every field before publishing.</span>
+          </div>
+          
+          {% if ai_data.missing_details_note %}
+            <div class="p-2 rounded bg-black bg-opacity-40 text-warning small mb-3">
+              <i class="bi bi-info-circle me-1"></i> <strong>Note on Missing Details:</strong> {{ ai_data.missing_details_note }}
+            </div>
+          {% endif %}
+
+          {% if ai_data.follow_up_questions %}
+            <h6 class="small text-muted text-uppercase fw-bold mb-1">Recommended Follow-Up Considerations:</h6>
+            <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+              {% for q in ai_data.follow_up_questions %}
+                <li class="text-white-50"><i class="bi bi-arrow-right-short text-info"></i> {{ q }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="glass-card p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="h3 fw-bold text-white mb-1">{% if brief %}Edit{% else %}Create{% endif %} Creative Campaign Brief</h2>
+            <p class="text-muted small mb-0">Specify deliverable formats, budget range, and AI pipeline expectations.</p>
+          </div>
+          {% if not brief and not ai_data %}
+            <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-glass btn-sm text-info">
+              <i class="bi bi-magic text-warning me-1"></i> Build with AI Instead
+            </a>
+          {% endif %}
+        </div>
+
+        <form method="POST" action="{% if brief %}{{ url_for('brief.edit_brief', brief_id=brief.id) }}{% else %}{{ url_for('brief.create_brief') }}{% endif %}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Campaign Title & Product -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label for="campaignTitle" class="form-label">Campaign Title *</label>
+              <input type="text" class="form-control" id="campaignTitle" name="title" 
+                     value="{{ brief.title if brief else (ai_data.title if ai_data else '') }}" 
+                     placeholder="e.g. Aura Glow Hydra-Luxe Serum Video Ad" required>
+            </div>
+            <div class="col-md-5">
+              <label for="productService" class="form-label">Product / Service Name *</label>
+              <input type="text" class="form-control" id="productService" name="product_or_service" 
+                     value="{{ brief.product_or_service if brief else (ai_data.product_or_service if ai_data else '') }}" 
+                     placeholder="e.g. Hydra-Luxe Bio-Serum" required>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label">Campaign Description &amp; Vision *</label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Detail the campaign narrative, emotional tone, visual references, and product benefits..." required>{{ brief.description if brief else (ai_data.description if ai_data else '') }}</textarea>
+          </div>
+
+          <!-- Objective & Target Audience -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="objective" class="form-label">Campaign Objective</label>
+              <input type="text" class="form-control" id="objective" name="objective" 
+                     value="{{ brief.objective if brief else (ai_data.objective if ai_data else 'Brand Awareness & High-Conversion Paid Social') }}">
+            </div>
+            <div class="col-md-6">
+              <label for="targetAudience" class="form-label">Target Audience</label>
+              <input type="text" class="form-control" id="targetAudience" name="target_audience" 
+                     value="{{ brief.target_audience if brief else (ai_data.target_audience if ai_data else 'Gen Z & Millennial consumers aged 18-35') }}">
+            </div>
+          </div>
+
+          <!-- Category, Content Type & Creative Style -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="contentCategory" class="form-label">Content Category</label>
+              <select class="form-select" id="contentCategory" name="content_category">
+                {% set cur_cat = brief.content_category if brief else (ai_data.content_category if ai_data else 'Commercial Ads') %}
+                <option value="Commercial Ads" {% if 'Commercial' in cur_cat %}selected{% endif %}>Commercial Ads</option>
+                <option value="Beauty & Cosmetics" {% if 'Beauty' in cur_cat %}selected{% endif %}>Beauty &amp; Cosmetics</option>
+                <option value="Tech & Software" {% if 'Tech' in cur_cat %}selected{% endif %}>Tech &amp; Hardware</option>
+                <option value="Fashion & Apparel" {% if 'Fashion' in cur_cat %}selected{% endif %}>Fashion &amp; Apparel</option>
+                <option value="Gaming & Entertainment" {% if 'Gaming' in cur_cat %}selected{% endif %}>Gaming &amp; Entertainment</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="contentType" class="form-label">Content Type</label>
+              <select class="form-select" id="contentType" name="content_type">
+                {% set cur_type = brief.content_type if brief else (ai_data.content_type if ai_data else 'AI Video Ad') %}
+                <option value="AI Video Ad" {% if 'Video' in cur_type %}selected{% endif %}>AI Video Ad</option>
+                <option value="3D Motion Showcase" {% if '3D' in cur_type %}selected{% endif %}>3D Motion Showcase</option>
+                <option value="High-Res Key Visuals" {% if 'Still' in cur_type or 'Visual' in cur_type %}selected{% endif %}>High-Res Key Visuals</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="creativeStyle" class="form-label">Creative Style &amp; Mood</label>
+              <input type="text" class="form-control" id="creativeStyle" name="creative_style" 
+                     value="{{ brief.creative_style if brief else (ai_data.creative_style if ai_data else 'Hyper-realistic, Macro Cinematic') }}" placeholder="e.g. Cyberpunk, Minimalist Luxury">
+            </div>
+          </div>
+
+          <!-- Platform, Aspect Ratio & Deliverables -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="preferredPlatform" class="form-label">Preferred Platform</label>
+              <input type="text" class="form-control" id="preferredPlatform" name="preferred_platform" 
+                     value="{{ brief.preferred_platform if brief else (ai_data.preferred_platform if ai_data else 'Instagram Reels & TikTok') }}">
+            </div>
+            <div class="col-md-4">
+              <label for="aspectRatio" class="form-label">Aspect Ratio</label>
+              <select class="form-select" id="aspectRatio" name="aspect_ratio">
+                {% set cur_aspect = brief.aspect_ratio if brief else (ai_data.aspect_ratio if ai_data else '9:16 (Vertical)') %}
+                <option value="9:16 (Vertical)" {% if '9:16' in cur_aspect %}selected{% endif %}>9:16 (Vertical)</option>
+                <option value="16:9 (Landscape)" {% if '16:9' in cur_aspect %}selected{% endif %}>16:9 (Landscape)</option>
+                <option value="1:1 (Square)" {% if '1:1' in cur_aspect %}selected{% endif %}>1:1 (Square)</option>
+                <option value="4:5 (Portrait)" {% if '4:5' in cur_aspect %}selected{% endif %}>4:5 (Portrait)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="deliverablesCount" class="form-label">Deliverables Count</label>
+              <input type="number" class="form-control" id="deliverablesCount" name="deliverables_count" 
+                     value="{{ brief.deliverables_count if brief else (ai_data.deliverables_count if ai_data else 2) }}" min="1" max="10">
+            </div>
+          </div>
+
+          <!-- Tools & Skills Requirements -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="requiredSkills" class="form-label">Required Skills (Comma-separated)</label>
+              <input type="text" class="form-control" id="requiredSkills" name="required_skills" 
+                     value="{{ brief.required_skills if brief else (ai_data.required_skills if ai_data else 'Runway Gen-3, Midjourney v6, Video Upscaling, Sound Design') }}" placeholder="Skills">
+            </div>
+            <div class="col-md-6">
+              <label for="preferredAITools" class="form-label">Preferred AI Tools (Comma-separated)</label>
+              <input type="text" class="form-control" id="preferredAITools" name="preferred_ai_tools" 
+                     value="{{ brief.preferred_ai_tools if brief else (ai_data.preferred_ai_tools if ai_data else 'Runway Gen-3, Midjourney v6, ElevenLabs, Topaz') }}" placeholder="Tools">
+            </div>
+          </div>
+
+          <!-- Budget Range -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="budgetMin" class="form-label">Budget Min ($)</label>
+              <input type="number" class="form-control" id="budgetMin" name="budget_min" 
+                     value="{{ brief.budget_min if brief else (ai_data.suggested_budget_min if ai_data else 600) }}" step="50" required>
+            </div>
+            <div class="col-md-4">
+              <label for="budgetMax" class="form-label">Budget Max ($)</label>
+              <input type="number" class="form-control" id="budgetMax" name="budget_max" 
+                     value="{{ brief.budget_max if brief else (ai_data.suggested_budget_max if ai_data else 1800) }}" step="50" required>
+            </div>
+            <div class="col-md-4">
+              <label for="currency" class="form-label">Currency</label>
+              <input type="text" class="form-control" id="currency" name="currency" 
+                     value="{{ brief.currency if brief else 'USD' }}" readonly>
+            </div>
+          </div>
+
+          <!-- Schedule & Acceptance Criteria -->
+          <div class="mb-3">
+            <label for="deliverySchedule" class="form-label">Delivery Schedule &amp; Milestones</label>
+            <input type="text" class="form-control" id="deliverySchedule" name="delivery_schedule" 
+                   value="{{ brief.delivery_schedule if brief else (ai_data.delivery_schedule if ai_data else 'Draft styleframes in 3 days; First cut in 7 days; Final delivery in 12 days.') }}">
+          </div>
+
+          <div class="mb-3">
+            <label for="acceptanceCriteria" class="form-label">Acceptance Criteria &amp; Review Stages</label>
+            <textarea class="form-control" id="acceptanceCriteria" name="acceptance_criteria" rows="2">{{ brief.acceptance_criteria if brief else (ai_data.acceptance_criteria if ai_data else '4K resolution master, zero temporal glitching on key product, audio design included.') }}</textarea>
+          </div>
+
+          <!-- Status & Submission -->
+          <div class="row g-3 mb-4 align-items-center">
+            <div class="col-md-6">
+              <label for="briefStatus" class="form-label">Brief Status</label>
+              <select class="form-select" id="briefStatus" name="status">
+                <option value="Published" {% if not brief or brief.status == 'Published' %}selected{% endif %}>Publish Immediately (Accepting Applications)</option>
+                <option value="Draft" {% if brief and brief.status == 'Draft' %}selected{% endif %}>Save as Draft</option>
+              </select>
+            </div>
+            <div class="col-md-6 pt-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="commCheck" name="commercial_use_required" checked>
+                <label class="form-check-label small text-white-50" for="commCheck">
+                  Full commercial advertising rights required from creators
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25">
+            <a href="{{ url_for('brand.dashboard') }}" class="btn btn-glass">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow px-4 py-2">
+              {% if brief %}Update Brief{% else %}Confirm &amp; Post Brief{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

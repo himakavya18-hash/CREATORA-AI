@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Brand Dashboard — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Brand Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ profile.logo_url or url_for('static', filename='images/default-brand.png') }}" 
+           alt="{{ profile.company_name }}" 
+           class="rounded-3 shadow object-fit-cover" 
+           style="width: 56px; height: 56px;"
+           onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=100&q=80'">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h2 fw-bold text-white mb-0">{{ profile.company_name }}</h2>
+          <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-building"></i> Brand Portal</span>
+        </div>
+        <p class="text-muted small mb-0">{{ profile.industry }} &bull; {{ profile.target_audience[:60] }}</p>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-primary-glow btn-sm">
+        <i class="bi bi-magic"></i> AI Brief Builder
+      </a>
+      <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">
+        <i class="bi bi-plus-circle"></i> Create Brief Manually
+      </a>
+      <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm">
+        <i class="bi bi-search"></i> Discover Creators
+      </a>
+      <a href="{{ url_for('brand.edit_profile') }}" class="btn btn-glass btn-sm" title="Edit Company Profile">
+        <i class="bi bi-gear"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Total Campaigns</div>
+            <div class="h3 fw-bold text-white mb-0">{{ briefs_count }}</div>
+          </div>
+          <div class="stat-icon bg-primary bg-opacity-25 text-primary">
+            <i class="bi bi-briefcase"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="text-info fw-semibold">{{ published_briefs_count }}</span> published &bull; <span class="text-white-50">{{ draft_briefs_count }}</span> drafts
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Proposals Received</div>
+            <div class="h3 fw-bold text-info mb-0">{{ apps_count }}</div>
+          </div>
+          <div class="stat-icon bg-info bg-opacity-25 text-info">
+            <i class="bi bi-inbox"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="text-warning fw-semibold">{{ shortlisted_apps_count }}</span> creators shortlisted
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Active Workspaces</div>
+            <div class="h3 fw-bold text-purple mb-0" style="color: #c084fc;">{{ active_projects|length }}</div>
+          </div>
+          <div class="stat-icon bg-purple bg-opacity-25" style="color: #a855f7;">
+            <i class="bi bi-kanban"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="text-success fw-semibold">{{ completed_projects_count }}</span> completed projects
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Saved Creators</div>
+            <div class="h3 fw-bold text-danger mb-0">{{ saved_creators|length }}</div>
+          </div>
+          <div class="stat-icon bg-danger bg-opacity-25 text-danger">
+            <i class="bi bi-heart"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <a href="{{ url_for('brand.saved_creators') }}" class="text-info text-decoration-none">View shortlist &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Campaigns & Incoming Proposals -->
+    <div class="col-lg-8">
+      
+      <!-- Campaigns Management -->
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-folder2-open text-primary me-2"></i> Your Campaign Briefs</h5>
+          <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">+ New Brief</a>
+        </div>
+
+        {% if briefs %}
+          <div class="d-flex flex-column gap-3">
+            {% for brief in briefs %}
+              <div class="p-3 rounded glass-card border-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <h6 class="text-white fw-bold mb-0">
+                      <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="text-white text-decoration-none">
+                        {{ brief.title }}
+                      </a>
+                    </h6>
+                    <span class="badge badge-creatora {% if brief.status == 'Published' %}badge-verified{% elif brief.status == 'Draft' %}badge-pending{% else %}badge-primary-soft{% endif %}">
+                      {{ brief.status }}
+                    </span>
+                  </div>
+                  <div class="small text-muted">
+                    Format: <span class="text-white-50">{{ brief.aspect_ratio }} ({{ brief.content_type }})</span> &bull; 
+                    Budget: <span class="text-success">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span> &bull;
+                    Proposals: <span class="text-info fw-semibold">{{ brief.applications.count() }}</span>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('matching.match_creators', brief_id=brief.id) }}" class="btn btn-primary-glow btn-sm" title="View Explainable AI Matching">
+                    <i class="bi bi-cpu"></i> AI Match
+                  </a>
+                  <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="btn btn-glass btn-sm" title="View Brief Details">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{{ url_for('brief.edit_brief', brief_id=brief.id) }}" class="btn btn-glass btn-sm" title="Edit Brief">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted small">
+            <i class="bi bi-briefcase fs-1 d-block mb-2 text-dim"></i>
+            No creative briefs created yet. 
+            <div class="mt-3">
+              <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-primary-glow btn-sm me-2"><i class="bi bi-magic"></i> AI Brief Builder</a>
+              <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">Create Manually</a>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Proposals Received -->
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-inbox text-info me-2"></i> Recent Proposals from Creators</h5>
+          <a href="{{ url_for('application.my_applications') }}" class="small text-info text-decoration-none">Manage All</a>
+        </div>
+
+        {% if all_apps %}
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+              <thead>
+                <tr class="text-muted small">
+                  <th>Creator</th>
+                  <th>Campaign</th>
+                  <th>Quote</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for app in all_apps %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <img src="{{ app.creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                             alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;"
+                             onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                        <div>
+                          <a href="{{ url_for('creator.public_profile', creator_id=app.creator.id) }}" class="text-white fw-bold text-decoration-none small">
+                            {{ app.creator.display_name }}
+                          </a>
+                          {% if app.creator.verification_status == 'Verified' %}
+                            <i class="bi bi-patch-check-fill text-success ms-1 small" title="Verified Creator"></i>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="text-muted small text-decoration-none text-truncate d-inline-block" style="max-width: 160px;">
+                        {{ app.brief.title }}
+                      </a>
+                    </td>
+                    <td class="text-success small fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                    <td>
+                      <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">
+                        {{ app.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="btn btn-glass btn-sm py-1 px-2">
+                        Review Proposal
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-envelope-open fs-2 d-block mb-2 text-dim"></i>
+            No applications received yet. Publish campaigns and invite matched creators!
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column: Analytics & Recommended Talent -->
+    <div class="col-lg-4">
+      
+      <!-- Chart.js Campaign Status Breakdown -->
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-pie-chart text-purple me-1"></i> Campaign Portfolio</h6>
+        <div style="height: 190px;">
+          <canvas id="briefStatusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Top Recommended Creators Spotlight -->
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-stars text-warning me-1"></i> Available Top AI Talent</h6>
+        <div class="d-flex flex-column gap-3">
+          {% for r_creator in recommended_creators %}
+            <div class="p-3 rounded glass-card border-subtle d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ r_creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                     alt="Avatar" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover;"
+                     onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                <div>
+                  <div class="text-white fw-bold small">
+                    {{ r_creator.display_name }}
+                    {% if r_creator.verification_status == 'Verified' %}
+                      <i class="bi bi-patch-check-fill text-success ms-1" style="font-size: 0.75rem;"></i>
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted" style="font-size: 0.75rem;">{{ r_creator.specialization or 'AI Visuals' }}</div>
+                </div>
+              </div>
+              <a href="{{ url_for('creator.public_profile', creator_id=r_creator.id) }}" class="btn btn-glass btn-sm py-1 px-2" style="font-size: 0.75rem;">
+                Profile
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mt-3">
+          <a href="{{ url_for('creator.list_creators') }}" class="btn btn-glass btn-sm w-100">Browse Full Creator Directory</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('briefStatusChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Published', 'Draft', 'Paused', 'Closed'],
+        datasets: [{
+          data: [
+            {{ brief_status_counts.Published }},
+            {{ brief_status_counts.Draft }},
+            {{ brief_status_counts.Paused }},
+            {{ brief_status_counts.Closed }}
+          ],
+          backgroundColor: ['#10b981', '#f59e0b', '#6366f1', '#64748b'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#94a3b8', font: { size: 11 } }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}AI Creator Matching — {{ brief.title }} | Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="mb-3">
+    <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="small text-muted text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i> Back to Brief: {{ brief.title }}
+    </a>
+  </div>
+
+  <!-- Header Banner -->
+  <div class="glass-card p-4 p-md-5 mb-4 border-glow">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2 glass-card">
+          <span class="badge badge-creatora badge-verified"><i class="bi bi-cpu-fill"></i> Explainable AI Matching Engine</span>
+          <span class="small text-white-50">Hybrid Weighted Scoring</span>
+        </div>
+        <h1 class="h2 fw-bold text-white mb-2">Matched Creators for '{{ brief.title }}'</h1>
+        <p class="text-muted small mb-0">
+          Rankings are calculated dynamically across 7 normalized criteria without popularity bias, giving newer creators a fair opportunity based on portfolio alignment.
+        </p>
+      </div>
+
+      <div class="text-md-end">
+        <span class="badge badge-creatora badge-cyan-soft fs-6 mb-1">{{ brief.content_category }}</span>
+        <div class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Interactive Scoring Controls & Weights Adjuster -->
+    <div class="col-lg-3">
+      <div class="glass-card p-4 sticky-top" style="top: 80px; z-index: 10;">
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-sliders text-primary me-2"></i> Scoring Weights</h5>
+        <p class="text-dim small mb-3">Adjust priority weights to recalculate matching ranks in real time.</p>
+
+        <form method="GET" action="{{ url_for('matching.match_creators', brief_id=brief.id) }}" id="weightsForm">
+          
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>Skills Match:</span>
+              <span class="text-white fw-bold">{{ "%.0f"|format(weights.skills * 100) }}%</span>
+            </div>
+            <input type="range" class="form-range" name="w_skills" min="0.05" max="0.5" step="0.05" value="{{ weights.skills }}" onchange="this.form.submit()">
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>Portfolio Relevance:</span>
+              <span class="text-white fw-bold">{{ "%.0f"|format(weights.portfolio * 100) }}%</span>
+            </div>
+            <input type="range" class="form-range" name="w_portfolio" min="0.05" max="0.5" step="0.05" value="{{ weights.portfolio }}" onchange="this.form.submit()">
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>Specialization:</span>
+              <span class="text-white fw-bold">{{ "%.0f"|format(weights.specialization * 100) }}%</span>
+            </div>
+            <input type="range" class="form-range" name="w_specialization" min="0.05" max="0.3" step="0.05" value="{{ weights.specialization }}" onchange="this.form.submit()">
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>Tool Stack:</span>
+              <span class="text-white fw-bold">{{ "%.0f"|format(weights.tools * 100) }}%</span>
+            </div>
+            <input type="range" class="form-range" name="w_tools" min="0.05" max="0.3" step="0.05" value="{{ weights.tools }}" onchange="this.form.submit()">
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted">
+              <span>Budget Fit:</span>
+              <span class="text-white fw-bold">{{ "%.0f"|format(weights.budget * 100) }}%</span>
+            </div>
+            <input type="range" class="form-range" name="w_budget" min="0.05" max="0.3" step="0.05" value="{{ weights.budget }}" onchange="this.form.submit()">
+          </div>
+
+          <!-- Eligibility Filter Switches -->
+          <hr class="border-secondary border-opacity-25 my-3">
+          <h6 class="small text-muted text-uppercase fw-bold mb-2">Eligibility Filters:</h6>
+
+          <div class="mb-3 form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="verified_only" value="true" id="filterVerifiedOnly" {% if filters.verification_only %}checked{% endif %} onchange="this.form.submit()">
+            <label class="form-check-label small text-white-50" for="filterVerifiedOnly">Verified Creators Only</label>
+          </div>
+
+          <button type="submit" class="btn btn-glass btn-sm w-100">Recalculate Ranks</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Ranked Creators with Transparent Explainability Breakdown -->
+    <div class="col-lg-9">
+      
+      <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+        <span>Evaluated <strong class="text-white">{{ matched_results|length }}</strong> registered creators</span>
+        <span>Scores represent predictive compatibility estimates</span>
+      </div>
+
+      {% if matched_results %}
+        <div class="d-flex flex-column gap-4">
+          {% for res in matched_results %}
+            {% set creator = res.creator %}
+            {% set score = res.score %}
+            {% set bd = res.breakdown %}
+            {% set is_applied = creator.id in existing_applications %}
+            
+            <div class="glass-card p-4 glass-card-interactive position-relative">
+              
+              <div class="row g-4 align-items-center">
+                <!-- Creator Info & Avatar -->
+                <div class="col-md-7">
+                  <div class="d-flex align-items-start gap-3">
+                    <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                         alt="{{ creator.display_name }}" 
+                         class="rounded-circle shadow object-fit-cover" 
+                         style="width: 64px; height: 64px;"
+                         onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <h4 class="h5 fw-bold text-white mb-0">
+                          <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="text-white text-decoration-none">
+                            {{ creator.display_name }}
+                          </a>
+                        </h4>
+                        {% if creator.verification_status == 'Verified' %}
+                          <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
+                            <i class="bi bi-patch-check-fill"></i> Verified
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      <div class="small text-muted mb-2">
+                        {{ creator.headline }} &bull; {{ creator.location or 'Remote' }}
+                      </div>
+
+                      <div class="d-flex flex-wrap gap-1 mb-2">
+                        {% for tool in creator.get_tools_list()[:3] %}
+                          <span class="badge bg-black border border-secondary text-white-50" style="font-size: 0.7rem;">{{ tool }}</span>
+                        {% endfor %}
+                      </div>
+
+                      <div class="small text-muted">
+                        Rates: <span class="text-success fw-bold">${{ "%.0f"|format(creator.hourly_rate_min) }} - ${{ "%.0f"|format(creator.hourly_rate_max) }}</span> 
+                        &bull; Status: <span class="text-white-50">{{ creator.availability_status }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Match Score Badge & Action -->
+                <div class="col-md-5 text-md-end">
+                  <div class="d-flex flex-column align-items-md-end gap-2">
+                    <div class="match-score-badge {% if score >= 80 %}score-high{% elif score >= 60 %}score-med{% else %}score-fair{% endif %}">
+                      <i class="bi bi-lightning-charge-fill me-1"></i> {{ score }}% Match
+                    </div>
+                    <span class="small text-dim">Composite Compatibility</span>
+
+                    <div class="d-flex gap-2 mt-2 w-100 justify-content-md-end">
+                      <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-glass btn-sm">
+                        Inspect Portfolio
+                      </a>
+
+                      {% if is_applied %}
+                        <span class="badge badge-creatora badge-verified p-2 small">
+                          <i class="bi bi-check-lg"></i> {{ existing_applications[creator.id].status }}
+                        </span>
+                      {% else %}
+                        <form method="POST" action="{{ url_for('matching.invite_creator', brief_id=brief.id, creator_id=creator.id) }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-primary-glow btn-sm">
+                            <i class="bi bi-send-plus"></i> Invite Creator
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Score Breakdown & Explainability Accordion -->
+              <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                <div class="row g-3">
+                  <!-- Breakdown Meters -->
+                  <div class="col-md-6">
+                    <h6 class="small text-muted text-uppercase fw-bold mb-2">Score Breakdown:</h6>
+                    
+                    <div class="d-flex flex-column gap-2 small">
+                      <div>
+                        <div class="d-flex justify-content-between text-dim">
+                          <span>Skills Alignment</span>
+                          <span class="text-white">{{ bd.skills }}%</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background: rgba(255,255,255,0.06);">
+                          <div class="progress-bar bg-primary" style="width: {{ bd.skills }}%;"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="d-flex justify-content-between text-dim">
+                          <span>Portfolio Relevance</span>
+                          <span class="text-white">{{ bd.portfolio }}%</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background: rgba(255,255,255,0.06);">
+                          <div class="progress-bar bg-info" style="width: {{ bd.portfolio }}%;"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="d-flex justify-content-between text-dim">
+                          <span>Specialization &amp; Style</span>
+                          <span class="text-white">{{ bd.specialization }}%</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background: rgba(255,255,255,0.06);">
+                          <div class="progress-bar bg-purple" style="width: {{ bd.specialization }}%;"></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="d-flex justify-content-between text-dim">
+                          <span>Budget Compatibility</span>
+                          <span class="text-white">{{ bd.budget }}%</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background: rgba(255,255,255,0.06);">
+                          <div class="progress-bar bg-success" style="width: {{ bd.budget }}%;"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Explainable Highlights -->
+                  <div class="col-md-6">
+                    <h6 class="small text-muted text-uppercase fw-bold mb-2">Why This Recommendation:</h6>
+                    <ul class="list-unstyled small d-flex flex-column gap-1 mb-2">
+                      {% for st in res.strengths %}
+                        <li class="text-white-50"><i class="bi bi-check2 text-success me-1"></i> {{ st }}</li>
+                      {% endfor %}
+                    </ul>
+
+                    {% if res.cautions %}
+                      <h6 class="small text-muted text-uppercase fw-bold mb-1 mt-2">Cautions / Missing Data:</h6>
+                      <ul class="list-unstyled small d-flex flex-column gap-1 mb-0">
+                        {% for c in res.cautions %}
+                          <li class="text-warning"><i class="bi bi-exclamation-circle me-1"></i> {{ c }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="glass-card p-5 text-center text-muted">
+          <i class="bi bi-people fs-1 d-block mb-3 text-dim"></i>
+          <h4>No Creators Match Current Eligibility Filters</h4>
+          <p class="small text-dim mb-4">Try disabling 'Verified Creators Only' or expanding rate filters.</p>
+          <a href="{{ url_for('matching.match_creators', brief_id=brief.id) }}" class="btn btn-primary-glow btn-sm">Reset Matching Weights</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

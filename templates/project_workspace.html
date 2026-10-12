@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Project Workspace #{{ project.id }} — {{ project.brief.title }} | Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="mb-3">
+    <a href="{{ url_for('project.list_projects') }}" class="small text-muted text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i> Back to Projects
+    </a>
+  </div>
+
+  <!-- Workspace Header Banner -->
+  <div class="glass-card p-4 p-md-5 mb-4 border-glow">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge badge-creatora badge-cyan-soft">Workspace #{{ project.id }}</span>
+          <span class="badge badge-creatora {% if project.status == 'Completed' %}badge-verified{% elif project.status == 'Revisions Requested' %}badge-pending{% else %}badge-primary-soft{% endif %}">
+            {{ project.status }}
+          </span>
+        </div>
+
+        <h1 class="h2 fw-bold text-white mb-2">{{ project.brief.title }}</h1>
+        
+        <div class="d-flex flex-wrap gap-3 text-muted small">
+          <span><i class="bi bi-building me-1 text-info"></i> Brand: <strong class="text-white">{{ project.brand.company_name }}</strong></span>
+          <span><i class="bi bi-person-badge me-1 text-warning"></i> Creator: <strong class="text-white">{{ project.creator.display_name }}</strong></span>
+          <span><i class="bi bi-calendar-event me-1 text-danger"></i> Deadline: <strong class="text-white">{{ project.agreed_deadline.strftime('%b %d, %Y') if project.agreed_deadline else 'Ongoing' }}</strong></span>
+          <span><i class="bi bi-cash-coin me-1 text-success"></i> Agreed Budget: <strong class="text-success">${{ "%.0f"|format(project.agreed_budget) }} {{ project.currency }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Final Approval Button (Brand or Admin) -->
+      <div class="text-md-end">
+        {% if current_user.is_brand and project.status != 'Completed' %}
+          <form method="POST" action="{{ url_for('project.approve_project', project_id=project.id) }}" onsubmit="return confirm('Grant final approval and complete this project?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary-glow px-4 py-2">
+              <i class="bi bi-check2-circle fs-5 me-1"></i> Grant Final Approval
+            </button>
+          </form>
+        {% elif project.status == 'Completed' %}
+          <span class="badge badge-creatora badge-verified p-2 fs-6">
+            <i class="bi bi-trophy-fill text-warning me-1"></i> Project Completed
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>Production Completion Progress</span>
+        <span class="text-white fw-bold">{{ project.progress_percentage() }}%</span>
+      </div>
+      <div class="progress" style="height: 8px; background: rgba(255,255,255,0.08);">
+        <div class="progress-bar bg-success" style="width: {{ project.progress_percentage() }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Milestones & Deliverables Submissions -->
+    <div class="col-lg-7">
+      
+      <!-- Milestones Pipeline -->
+      <div class="glass-card p-4 mb-4">
+        <h4 class="h5 fw-bold text-white mb-3"><i class="bi bi-check2-square text-primary me-2"></i> Agreed Milestones Pipeline</h4>
+        
+        <div class="d-flex flex-column gap-3">
+          {% for m in milestones %}
+            <div class="p-3 rounded glass-card border-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-dark border border-secondary text-white-50" style="font-size: 0.7rem;">M{{ m.order_index }}</span>
+                  <h6 class="text-white fw-bold mb-0">{{ m.title }}</h6>
+                  <span class="badge badge-creatora {% if m.status == 'Approved' %}badge-verified{% elif m.status == 'Submitted' %}badge-pending{% else %}bg-secondary text-white-50{% endif %}">
+                    {{ m.status }}
+                  </span>
+                </div>
+                <div class="small text-muted">{{ m.description }}</div>
+              </div>
+
+              <!-- Milestone Action -->
+              <div>
+                {% if current_user.is_creator and m.status == 'Pending' %}
+                  <form method="POST" action="{{ url_for('project.update_milestone_status', project_id=project.id, milestone_id=m.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="Submitted">
+                    <button type="submit" class="btn btn-glass btn-sm text-info">Mark Submitted</button>
+                  </form>
+                {% elif current_user.is_brand and m.status == 'Submitted' %}
+                  <form method="POST" action="{{ url_for('project.update_milestone_status', project_id=project.id, milestone_id=m.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="Approved">
+                    <button type="submit" class="btn btn-primary-glow btn-sm">Approve Milestone</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Revision History & Deliverables Timeline -->
+      <div class="glass-card p-4 mb-4">
+        <h4 class="h5 fw-bold text-white mb-3"><i class="bi bi-clock-history text-info me-2"></i> Draft Versions &amp; Revision History</h4>
+
+        {% if revisions %}
+          <div class="d-flex flex-column gap-3">
+            {% for rev in revisions %}
+              <div class="p-3 rounded glass-card border-subtle">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <span class="badge badge-creatora badge-primary-soft">Version {{ rev.version_number }}</span>
+                    <strong class="text-white ms-1">{{ rev.requested_by.email.split('@')[0] }}</strong>
+                    <span class="text-dim small">&bull; {{ rev.created_at.strftime('%b %d, %H:%M') }}</span>
+                  </div>
+                  <span class="badge badge-creatora badge-cyan-soft">{{ rev.status }}</span>
+                </div>
+
+                <p class="text-white-50 small mb-2" style="white-space: pre-line;">
+                  {{ rev.revision_notes }}
+                </p>
+
+                {% if rev.draft_url %}
+                  <div class="p-2 rounded bg-black bg-opacity-40 d-flex justify-content-between align-items-center">
+                    <span class="small text-info text-truncate" style="max-width: 250px;">
+                      <i class="bi bi-paperclip me-1"></i> Deliverable Asset
+                    </span>
+                    <a href="{{ rev.draft_url }}" target="_blank" class="btn btn-glass btn-sm py-0 px-2" style="font-size: 0.75rem;">
+                      Preview / Download &rarr;
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            No draft versions or revision notes submitted yet.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Submit Deliverable / Request Revision Form -->
+      <div class="glass-card p-4">
+        <h5 class="fw-bold text-white mb-2">
+          {% if current_user.is_creator %}
+            <i class="bi bi-cloud-arrow-up text-success me-2"></i> Submit New Deliverable Draft
+          {% else %}
+            <i class="bi bi-arrow-repeat text-warning me-2"></i> Request Revision / Submit Feedback
+          {% endif %}
+        </h5>
+        
+        <form method="POST" action="{{ url_for('project.submit_revision', project_id=project.id) }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label class="form-label">Notes &amp; Feedback Instructions *</label>
+            <textarea class="form-control" name="revision_notes" rows="3" placeholder="{% if current_user.is_creator %}Describe what changed in this version (e.g. enhanced fluid viscosity in Runway, updated color timing)...{% else %}Detail requested adjustments or change orders...{% endif %}" required></textarea>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Attach File (Optional)</label>
+              <input type="file" class="form-control form-control-sm" name="draft_file">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Or External Media / Cloud URL</label>
+              <input type="url" class="form-control form-control-sm" name="draft_url_input" placeholder="https://drive.google.com/file/...">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-glow btn-sm">
+            {% if current_user.is_creator %}Submit Draft Cut{% else %}Send Revision Request{% endif %}
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Right Column: In-Workspace Chat & Campaign Brief Reference -->
+    <div class="col-lg-5">
+      
+      <!-- In-Workspace Real-Time Discussion -->
+      <div class="glass-card p-4 mb-4 d-flex flex-column" style="min-height: 480px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-chat-dots text-purple me-2"></i> Project Discussion</h5>
+          <span class="small text-dim">{{ other_user.email.split('@')[0] }}</span>
+        </div>
+
+        <!-- Chat Stream -->
+        <div class="flex-grow-1 overflow-auto d-flex flex-column gap-2 mb-3 p-2 rounded bg-black bg-opacity-30" style="max-height: 320px;">
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="p-2 rounded {% if msg.sender_id == current_user.id %}bg-primary bg-opacity-25 ms-auto text-end{% else %}bg-secondary bg-opacity-25 me-auto text-start{% endif %} small" style="max-width: 80%;">
+                <div class="text-white-50">{{ msg.content }}</div>
+                <div class="text-dim" style="font-size: 0.68rem;">{{ msg.created_at.strftime('%H:%M') }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-4 text-dim small">No messages in workspace yet. Say hello!</div>
+          {% endif %}
+        </div>
+
+        <!-- Send Message Input -->
+        <form method="POST" action="{{ url_for('messaging.send_message') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="receiver_id" value="{{ other_user.id }}">
+          <input type="hidden" name="project_id" value="{{ project.id }}">
+          
+          <div class="input-group">
+            <input type="text" class="form-control form-control-sm" name="content" placeholder="Type a message..." required>
+            <button type="submit" class="btn btn-primary-glow btn-sm"><i class="bi bi-send"></i></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Campaign Brief Quick Reference -->
+      <div class="glass-card p-4">
+        <h5 class="fw-bold text-white mb-2"><i class="bi bi-briefcase text-info me-2"></i> Original Brief Specs</h5>
+        <div class="small text-muted">
+          <p class="mb-1"><strong class="text-white">Format:</strong> {{ project.brief.aspect_ratio }} ({{ project.brief.content_type }})</p>
+          <p class="mb-1"><strong class="text-white">Tools:</strong> {{ project.brief.preferred_ai_tools }}</p>
+          <p class="mb-1"><strong class="text-white">Channels:</strong> {{ project.brief.preferred_platform }}</p>
+          <p class="mb-0"><strong class="text-white">Schedule:</strong> {{ project.brief.delivery_schedule }}</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

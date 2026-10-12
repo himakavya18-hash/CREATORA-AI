@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Creator Verification — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <!-- Current Status Alert -->
+      <div class="glass-card p-4 mb-4 border-glow">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="stat-icon bg-success bg-opacity-25 text-success">
+              <i class="bi bi-patch-check-fill fs-3"></i>
+            </div>
+            <div>
+              <h4 class="fw-bold text-white mb-0">Creator Verification Status</h4>
+              <p class="text-muted small mb-0">Independent verification adds trust and higher marketplace ranking.</p>
+            </div>
+          </div>
+
+          <div>
+            {% if profile.verification_status == 'Verified' %}
+              <span class="badge badge-creatora badge-verified fs-6"><i class="bi bi-patch-check-fill"></i> Verified Creator</span>
+            {% elif profile.verification_status == 'Pending Review' %}
+              <span class="badge badge-creatora badge-pending fs-6"><i class="bi bi-hourglass-split"></i> Pending Review</span>
+            {% elif profile.verification_status == 'Additional Evidence Required' %}
+              <span class="badge badge-creatora badge-pending fs-6"><i class="bi bi-exclamation-triangle"></i> More Evidence Needed</span>
+            {% elif profile.verification_status == 'Rejected' %}
+              <span class="badge badge-creatora bg-danger bg-opacity-25 text-danger border border-danger fs-6"><i class="bi bi-x-circle"></i> Rejected</span>
+            {% else %}
+              <span class="badge badge-creatora badge-primary-soft fs-6"><i class="bi bi-dash-circle"></i> Not Submitted</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if record and record.reviewer_notes %}
+          <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 mt-3">
+            <span class="small fw-bold text-info"><i class="bi bi-chat-left-quote me-1"></i> Moderator Review Notes:</span>
+            <p class="text-white-50 small mb-1 mt-1">{{ record.reviewer_notes }}</p>
+            <div class="text-dim small" style="font-size: 0.72rem;">Reviewed on {{ record.reviewed_at.strftime('%Y-%m-%d %H:%M') if record.reviewed_at else 'Recent' }}</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Submission Form -->
+      <div class="glass-card p-4 p-md-5">
+        <h4 class="fw-bold text-white mb-2">Submit / Update Verification Evidence</h4>
+        <p class="text-muted small mb-4">
+          To receive the Verified Creator badge, provide verifiable proof of your generative workflows, active AI engine subscriptions, and authentic creative output.
+        </p>
+
+        <form method="POST" action="{{ url_for('creator.verification') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Portfolio Evidence Links -->
+          <div class="mb-3">
+            <label for="evidenceLinks" class="form-label">Portfolio &amp; Showcase Links *</label>
+            <textarea class="form-control" id="evidenceLinks" name="evidence_links" rows="3" placeholder="https://instagram.com/myaiart, https://artstation.com/profile, https://vimeo.com/showreel" required>{{ record.portfolio_evidence_links if record else '' }}</textarea>
+            <div class="form-text text-dim">Public social profiles, portfolio websites, or video reels showing your creative track record.</div>
+          </div>
+
+          <!-- Tools & Workflow Information -->
+          <div class="mb-3">
+            <label for="workflowInfo" class="form-label">Generative Pipeline &amp; Tools Documentation *</label>
+            <textarea class="form-control" id="workflowInfo" name="workflow_info" rows="3" placeholder="Detail your prompt engineering methodology, tools utilized (Runway Gen-3, Midjourney paid tiers, ComfyUI, ElevenLabs), and post-production software." required>{{ record.tools_workflow_info if record else '' }}</textarea>
+          </div>
+
+          <!-- Past References -->
+          <div class="mb-3">
+            <label for="references" class="form-label">Client or Brand References (Optional)</label>
+            <input type="text" class="form-control" id="references" name="references" value="{{ record.past_references if record else '' }}" placeholder="Past commercial clients, campaign titles, or agency references">
+          </div>
+
+          <!-- Supporting Documents -->
+          <div class="mb-4">
+            <label for="docs" class="form-label">Subscription Proof or Additional Verification Links</label>
+            <input type="text" class="form-control" id="docs" name="docs" value="{{ record.supporting_documents if record else '' }}" placeholder="Drive/Dropbox link to subscription invoices or uncompressed styleframe project files">
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('creator.dashboard') }}" class="btn btn-glass">Back to Dashboard</a>
+            <button type="submit" class="btn btn-primary-glow px-4">
+              Submit for Verification <i class="bi bi-send ms-1"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

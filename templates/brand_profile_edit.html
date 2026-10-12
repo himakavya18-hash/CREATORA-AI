@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Company Profile — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-card p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="h3 fw-bold text-white mb-1">Brand &amp; Agency Profile</h2>
+            <p class="text-muted small mb-0">Help creators understand your brand style, target audience, and creative expectations.</p>
+          </div>
+          <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-building"></i> Brand Portal</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('brand.edit_profile') }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Company Name & Logo -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-3 text-center">
+              <label class="form-label d-block">Company Logo</label>
+              <img src="{{ profile.logo_url or url_for('static', filename='images/default-brand.png') }}" 
+                   alt="Logo" class="rounded-3 mb-2 shadow object-fit-cover" style="width: 80px; height: 80px;"
+                   onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=100&q=80'">
+              <input type="file" class="form-control form-control-sm" name="logo_file" accept="image/*">
+            </div>
+
+            <div class="col-md-9">
+              <div class="mb-3">
+                <label for="companyName" class="form-label">Company / Brand Name *</label>
+                <input type="text" class="form-control" id="companyName" name="company_name" value="{{ profile.company_name }}" required>
+              </div>
+              <div>
+                <label for="industry" class="form-label">Industry *</label>
+                <input type="text" class="form-control" id="industry" name="industry" value="{{ profile.industry }}" placeholder="e.g. Beauty & Cosmetics, Tech & SaaS, Fashion">
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label">Company Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Tell creators about your company, products, and mission...">{{ profile.description }}</textarea>
+          </div>
+
+          <!-- Target Audience & Preferred Formats -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="targetAudience" class="form-label">Target Audience</label>
+              <input type="text" class="form-control" id="targetAudience" name="target_audience" value="{{ profile.target_audience }}" placeholder="e.g. Gen Z skincare enthusiasts aged 18-28">
+            </div>
+            <div class="col-md-6">
+              <label for="preferredFormats" class="form-label">Preferred Content Formats</label>
+              <input type="text" class="form-control" id="preferredFormats" name="preferred_formats" value="{{ profile.preferred_formats }}" placeholder="e.g. 9:16 Vertical Video, 4K Stills">
+            </div>
+          </div>
+
+          <!-- Brand Style -->
+          <div class="mb-3">
+            <label for="brandStyle" class="form-label">Brand Aesthetic &amp; Creative Style Guidelines</label>
+            <textarea class="form-control" id="brandStyle" name="brand_style" rows="2" placeholder="Describe your visual guidelines (e.g. minimal pastel, high-contrast cyber, neon accents)...">{{ profile.brand_style }}</textarea>
+          </div>
+
+          <!-- Contact & Website -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="website" class="form-label">Website</label>
+              <input type="url" class="form-control" id="website" name="website" value="{{ profile.website }}" placeholder="https://example.com">
+            </div>
+            <div class="col-md-6">
+              <label for="contactEmail" class="form-label">Contact / Press Email</label>
+              <input type="email" class="form-control" id="contactEmail" name="contact_email" value="{{ profile.contact_email }}" placeholder="campaigns@domain.com">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('brand.dashboard') }}" class="btn btn-glass">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow px-4">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

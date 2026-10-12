@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Messages — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="glass-card overflow-hidden" style="min-height: 600px;">
+    <div class="row g-0">
+      
+      <!-- Left: Conversations List -->
+      <div class="col-md-4 border-end border-secondary border-opacity-25" style="background: rgba(16, 20, 36, 0.5);">
+        <div class="p-3 border-bottom border-secondary border-opacity-25">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-chat-dots text-primary me-2"></i> Messages</h5>
+        </div>
+
+        <div class="overflow-auto" style="max-height: 540px;">
+          {% if conversations %}
+            {% for conv in conversations %}
+              {% set c = conv.contact %}
+              <a href="{{ url_for('messaging.conversation', other_user_id=c.id) }}" class="p-3 d-flex align-items-center gap-3 border-bottom border-secondary border-opacity-10 text-decoration-none {% if active_contact and active_contact.id == c.id %}bg-primary bg-opacity-20{% else %}bg-transparent{% endif %}">
+                <img src="{{ c.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                     alt="Avatar" class="rounded-circle object-fit-cover shadow" style="width: 44px; height: 44px;"
+                     onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                <div class="flex-grow-1 overflow-hidden">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-white fw-bold text-truncate small">
+                      {{ c.creator_profile.display_name if c.is_creator and c.creator_profile else (c.brand_profile.company_name if c.is_brand and c.brand_profile else c.email.split('@')[0]) }}
+                    </span>
+                    {% if conv.latest_message %}
+                      <span class="text-dim" style="font-size: 0.68rem;">{{ conv.latest_message.created_at.strftime('%b %d') }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted text-truncate" style="font-size: 0.78rem;">
+                    {{ conv.latest_message.content if conv.latest_message else 'No messages yet.' }}
+                  </div>
+                </div>
+                {% if conv.unread_count > 0 %}
+                  <span class="badge rounded-pill bg-danger" style="font-size: 0.65rem;">{{ conv.unread_count }}</span>
+                {% endif %}
+              </a>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-5 text-muted small">
+              <i class="bi bi-chat-left-dots fs-2 d-block mb-2 text-dim"></i>
+              No conversations yet. Message a creator or brand from their profile or campaign.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right: Active Conversation Stream -->
+      <div class="col-md-8 d-flex flex-column" style="min-height: 600px;">
+        {% if active_contact %}
+          <!-- Thread Header -->
+          <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ active_contact.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                   alt="Avatar" class="rounded-circle shadow object-fit-cover" style="width: 40px; height: 40px;"
+                   onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+              <div>
+                <h6 class="text-white fw-bold mb-0">
+                  {{ active_contact.creator_profile.display_name if active_contact.is_creator and active_contact.creator_profile else (active_contact.brand_profile.company_name if active_contact.is_brand and active_contact.brand_profile else active_contact.email.split('@')[0]) }}
+                </h6>
+                <span class="badge badge-creatora badge-primary-soft py-0" style="font-size: 0.65rem;">{{ active_contact.role }}</span>
+              </div>
+            </div>
+
+            <!-- Report User action -->
+            <button class="btn btn-glass btn-sm text-muted" data-bs-toggle="modal" data-bs-target="#reportModal" title="Report User">
+              <i class="bi bi-flag"></i>
+            </button>
+          </div>
+
+          <!-- Message History -->
+          <div class="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-2" style="max-height: 460px;">
+            {% for msg in messages %}
+              <div class="p-3 rounded-3 {% if msg.sender_id == current_user.id %}bg-primary text-white ms-auto text-end{% else %}bg-dark border border-secondary border-opacity-25 text-white-50 me-auto text-start{% endif %} small" style="max-width: 75%;">
+                <div>{{ msg.content }}</div>
+                <div class="text-dim mt-1" style="font-size: 0.68rem;">{{ msg.created_at.strftime('%b %d, %H:%M') }}</div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Input bar -->
+          <div class="p-3 border-top border-secondary border-opacity-25 mt-auto">
+            <form method="POST" action="{{ url_for('messaging.send_message') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="receiver_id" value="{{ active_contact.id }}">
+              {% if project_id %}
+                <input type="hidden" name="project_id" value="{{ project_id }}">
+              {% endif %}
+
+              <div class="input-group">
+                <input type="text" class="form-control" name="content" placeholder="Write your message..." required autofocus>
+                <button type="submit" class="btn btn-primary-glow px-4">
+                  Send <i class="bi bi-send ms-1"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+        {% else %}
+          <div class="d-flex flex-column align-items-center justify-content-center h-100 text-center text-muted p-5">
+            <i class="bi bi-chat-dots fs-1 mb-3 text-dim"></i>
+            <h5>Select a Conversation</h5>
+            <p class="small text-dim">Choose a thread from the left or visit a creator or campaign to send a new message.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+{% if active_contact %}
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-white" id="reportModalLabel">Report User</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('auth.submit_report') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="target_type" value="message">
+        <input type="hidden" name="target_id" value="{{ active_contact.id }}">
+        <input type="hidden" name="reported_user_id" value="{{ active_contact.id }}">
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Reason</label>
+            <select class="form-select" name="reason" required>
+              <option value="Spam / Harassment">Spam / Harassment</option>
+              <option value="Copyright Infringement">Copyright Infringement</option>
+              <option value="Misleading AI Claims">Misleading AI Claims</option>
+              <option value="Payment Evasion">Payment Evasion</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Additional Details</label>
+            <textarea class="form-control" name="details" rows="3" placeholder="Provide context for moderation review..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-glass" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

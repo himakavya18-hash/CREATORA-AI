@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Creative Campaign Briefs — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="text-center mb-5">
+    <h1 class="display-6 fw-bold text-white mb-2">Active Campaign Briefs</h1>
+    <p class="text-muted mx-auto" style="max-width: 650px;">
+      Explore commercial AI video campaigns, product renders, and branded content briefs posted by forward-thinking brands.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3">
+      <div class="glass-card p-4 sticky-top" style="top: 80px; z-index: 10;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-funnel text-primary me-2"></i> Filter Briefs</h5>
+          <a href="{{ url_for('brief.list_briefs') }}" class="small text-danger text-decoration-none">Clear</a>
+        </div>
+
+        <form method="GET" action="{{ url_for('brief.list_briefs') }}">
+          <div class="mb-3">
+            <label class="form-label">Search</label>
+            <input type="text" class="form-control form-control-sm" name="q" value="{{ query }}" placeholder="Title, product, skills...">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select class="form-select form-select-sm" name="category" onchange="this.form.submit()">
+              <option value="">All Categories</option>
+              <option value="Commercial" {% if category_filter == 'Commercial' %}selected{% endif %}>Commercial Ads</option>
+              <option value="Beauty" {% if category_filter == 'Beauty' %}selected{% endif %}>Beauty &amp; Cosmetics</option>
+              <option value="Tech" {% if category_filter == 'Tech' %}selected{% endif %}>Tech &amp; Hardware</option>
+              <option value="Fashion" {% if category_filter == 'Fashion' %}selected{% endif %}>Fashion &amp; Apparel</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Content Type</label>
+            <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
+              <option value="">All Formats</option>
+              <option value="AI Video Ad" {% if type_filter == 'AI Video Ad' %}selected{% endif %}>AI Video Ad</option>
+              <option value="3D Motion" {% if type_filter == '3D Motion' %}selected{% endif %}>3D Motion Showcase</option>
+              <option value="Stills" {% if type_filter == 'Stills' %}selected{% endif %}>Stills &amp; Key Visuals</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary-glow btn-sm w-100">Apply Filters</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Briefs Grid -->
+    <div class="col-lg-9">
+      
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="text-muted small">
+          Showing <span class="fw-bold text-white">{{ briefs.total }}</span> active campaign opportunities
+        </div>
+
+        {% if current_user.is_authenticated and current_user.is_brand %}
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('brief.ai_builder') }}" class="btn btn-primary-glow btn-sm">
+              <i class="bi bi-magic"></i> AI Brief Builder
+            </a>
+            <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass btn-sm">
+              + Post Brief
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if briefs.items %}
+        <div class="row g-4">
+          {% for brief in briefs.items %}
+            <div class="col-md-6">
+              <div class="glass-card p-4 h-100 d-flex flex-column glass-card-interactive position-relative">
+                
+                <!-- Bookmark Button for creators -->
+                {% if current_user.is_authenticated and current_user.is_creator %}
+                  <button class="btn btn-sm btn-glass position-absolute top-0 end-0 m-3 p-1 px-2 btn-save-brief {% if brief.id in saved_brief_ids %}text-warning{% endif %}" 
+                          data-brief-id="{{ brief.id }}" 
+                          title="Bookmark campaign">
+                    <i class="bi bi-bookmark{% if brief.id in saved_brief_ids %}-fill{% endif %}"></i>
+                  </button>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-start mb-2 pe-4">
+                  <span class="badge badge-creatora badge-cyan-soft">{{ brief.content_category }}</span>
+                  <span class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span>
+                </div>
+
+                <h4 class="text-white fw-bold mb-1">
+                  <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="text-white text-decoration-none">
+                    {{ brief.title }}
+                  </a>
+                </h4>
+
+                <div class="small text-muted mb-3">
+                  <i class="bi bi-building me-1"></i> {{ brief.brand.company_name }} &bull; {{ brief.product_or_service }}
+                </div>
+
+                <p class="text-muted small flex-grow-1" style="line-height: 1.5;">
+                  {{ brief.description[:140] }}...
+                </p>
+
+                <!-- Format & Specs Badge bar -->
+                <div class="p-2 rounded bg-black bg-opacity-30 mb-3 small d-flex justify-content-between text-muted">
+                  <span><i class="bi bi-aspect-ratio me-1"></i> {{ brief.aspect_ratio }}</span>
+                  <span><i class="bi bi-camera-reels me-1"></i> {{ brief.content_type }}</span>
+                  <span><i class="bi bi-calendar3 me-1"></i> {{ brief.deadline.strftime('%b %d') if brief.deadline else 'Flexible' }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+                  <span class="small text-dim">{{ brief.applications.count() }} proposals</span>
+                  <div class="d-flex gap-2">
+                    <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="btn btn-glass btn-sm">
+                      Details
+                    </a>
+                    {% if current_user.is_authenticated and current_user.is_creator %}
+                      <a href="{{ url_for('application.apply_to_brief', brief_id=brief.id) }}" class="btn btn-primary-glow btn-sm">
+                        Apply <i class="bi bi-arrow-right"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if briefs.pages > 1 %}
+          <div class="d-flex justify-content-center mt-5">
+            <nav aria-label="Briefs pagination">
+              <ul class="pagination pagination-sm">
+                {% if briefs.has_prev %}
+                  <li class="page-item">
+                    <a class="page-link bg-dark border-secondary text-white" href="{{ url_for('brief.list_briefs', page=briefs.prev_num, q=query, category=category_filter, type=type_filter) }}">Previous</a>
+                  </li>
+                {% endif %}
+                {% for p in briefs.iter_pages() %}
+                  {% if p %}
+                    <li class="page-item {% if p == briefs.page %}active{% endif %}">
+                      <a class="page-link {% if p == briefs.page %}bg-primary border-primary text-white{% else %}bg-dark border-secondary text-white{% endif %}" href="{{ url_for('brief.list_briefs', page=p, q=query, category=category_filter, type=type_filter) }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                {% if briefs.has_next %}
+                  <li class="page-item">
+                    <a class="page-link bg-dark border-secondary text-white" href="{{ url_for('brief.list_briefs', page=briefs.next_num, q=query, category=category_filter, type=type_filter) }}">Next</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="glass-card p-5 text-center text-muted">
+          <i class="bi bi-briefcase fs-1 d-block mb-3 text-dim"></i>
+          <h4>No Campaign Briefs Found</h4>
+          <p class="small text-dim mb-4">Try clearing your filters or check back shortly for new campaign briefs.</p>
+          <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-primary-glow btn-sm">Reset Filters</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item %}Edit{% else %}Add{% endif %} Portfolio Project — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-card p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="h3 fw-bold text-white mb-1">{% if item %}Edit{% else %}Upload New{% endif %} AI Portfolio Project</h2>
+            <p class="text-muted small mb-0">Document your generative workflow, models used, aspect ratio, and commercial licensing.</p>
+          </div>
+          {% if not item %}
+            <button type="button" class="btn btn-glass btn-sm text-info" id="btnAIEnhance">
+              <i class="bi bi-magic text-warning me-1"></i> AI Description Assistant
+            </button>
+          {% endif %}
+        </div>
+
+        <form method="POST" action="{% if item %}{{ url_for('creator.edit_portfolio_item', item_id=item.id) }}{% else %}{{ url_for('creator.add_portfolio_item') }}{% endif %}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Title & Category -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label for="projectTitle" class="form-label">Project Title *</label>
+              <input type="text" class="form-control" id="projectTitle" name="title" value="{{ item.title if item else '' }}" placeholder="e.g. Neo-Silk Chromatic Haute Couture" required>
+            </div>
+            <div class="col-md-5">
+              <label for="category" class="form-label">Category *</label>
+              <select class="form-select" id="category" name="category">
+                <option value="Commercial Ads" {% if item and item.category == 'Commercial Ads' %}selected{% endif %}>Commercial Ads</option>
+                <option value="Beauty & Cosmetics" {% if item and item.category == 'Beauty & Cosmetics' %}selected{% endif %}>Beauty &amp; Cosmetics</option>
+                <option value="Tech & Software" {% if item and item.category == 'Tech & Software' %}selected{% endif %}>Tech &amp; Hardware</option>
+                <option value="Fashion & Apparel" {% if item and item.category == 'Fashion & Apparel' %}selected{% endif %}>Fashion &amp; Apparel</option>
+                <option value="Gaming & Entertainment" {% if item and item.category == 'Gaming & Entertainment' %}selected{% endif %}>Gaming &amp; Concept Art</option>
+                <option value="Social Media Content" {% if item and item.category == 'Social Media Content' %}selected{% endif %}>Social Media Content</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label">Project Description *</label>
+            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe the concept, creative direction, and technical execution..." required>{{ item.description if item else '' }}</textarea>
+          </div>
+
+          <!-- Media Upload & Media Type -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="mediaType" class="form-label">Media Type</label>
+              <select class="form-select" id="mediaType" name="media_type">
+                <option value="image" {% if item and item.media_type == 'image' %}selected{% endif %}>Image / 3D Render</option>
+                <option value="video" {% if item and item.media_type == 'video' %}selected{% endif %}>AI Video Clip</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label for="mediaFile" class="form-label">Upload File (MP4, PNG, JPG, WebP)</label>
+              <input type="file" class="form-control" id="mediaFile" name="media_file" accept="image/*,video/*">
+              <div class="form-text text-dim">Or provide an external media URL below if hosted elsewhere.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="mediaUrlInput" class="form-label">External Media / Video URL (Optional)</label>
+            <input type="url" class="form-control" id="mediaUrlInput" name="media_url_input" value="{{ item.media_url if item else '' }}" placeholder="https://assets.example.com/demo.mp4">
+          </div>
+
+          <!-- AI Tools & Models Used -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="aiToolsUsed" class="form-label">AI Tools Used (Comma-separated)</label>
+              <input type="text" class="form-control" id="aiToolsUsed" name="ai_tools_used" value="{{ item.ai_tools_used if item else 'Runway Gen-3, Midjourney v6, Topaz Video AI' }}" placeholder="e.g. Runway Gen-3, Midjourney v6">
+            </div>
+            <div class="col-md-6">
+              <label for="modelsUsed" class="form-label">Generative Models / Checkpoints</label>
+              <input type="text" class="form-control" id="modelsUsed" name="models_used" value="{{ item.models_used if item else 'Midjourney v6.1, Flux.1 Pro' }}" placeholder="e.g. Midjourney v6.1, SDXL Turbo">
+            </div>
+          </div>
+
+          <!-- Specifications: Aspect Ratio, Resolution, Output Format -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="aspectRatio" class="form-label">Aspect Ratio</label>
+              <select class="form-select" id="aspectRatio" name="aspect_ratio">
+                <option value="9:16 (Vertical)" {% if item and '9:16' in item.aspect_ratio %}selected{% endif %}>9:16 (Vertical / Reels)</option>
+                <option value="16:9 (Landscape)" {% if item and '16:9' in item.aspect_ratio %}selected{% endif %}>16:9 (Cinematic)</option>
+                <option value="1:1 (Square)" {% if item and '1:1' in item.aspect_ratio %}selected{% endif %}>1:1 (Square)</option>
+                <option value="4:5 (Portrait)" {% if item and '4:5' in item.aspect_ratio %}selected{% endif %}>4:5 (Instagram Feed)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="resolution" class="form-label">Resolution</label>
+              <input type="text" class="form-control" id="resolution" name="resolution" value="{{ item.resolution if item else '3840x2160 (4K UHD)' }}" placeholder="e.g. 1080x1920 or 4K">
+            </div>
+            <div class="col-md-4">
+              <label for="outputFormat" class="form-label">Output Format</label>
+              <input type="text" class="form-control" id="outputFormat" name="output_format" value="{{ item.output_format if item else 'MP4 60fps / PNG' }}" placeholder="MP4, ProRes, PNG">
+            </div>
+          </div>
+
+          <!-- Workflow & Licensing Declarations -->
+          <div class="mb-3">
+            <label for="workflowStages" class="form-label">Workflow Stages &amp; Pipeline Notes</label>
+            <textarea class="form-control" id="workflowStages" name="workflow_stages" rows="2" placeholder="e.g. Prompt engineering -> Regional inpainting -> 4K Topaz upscaling -> DaVinci color grade">{{ item.workflow_stages if item else 'Prompt Engineering -> Latent Inpainting -> Magnific AI Upscaling -> Color Timing' }}</textarea>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="assetSources" class="form-label">Asset Sources &amp; Stock Elements</label>
+              <input type="text" class="form-control" id="assetSources" name="asset_sources" value="{{ item.asset_sources if item else 'Pure generative synthesis with licensed custom audio track' }}" placeholder="Declared third-party assets or fonts">
+            </div>
+            <div class="col-md-6">
+              <label for="licensingDeclaration" class="form-label">Licensing Rights Declaration</label>
+              <input type="text" class="form-control" id="licensingDeclaration" name="licensing_declaration" value="{{ item.licensing_declaration if item else 'Commercial Use Permitted via Paid Tool Subscription' }}" placeholder="Commercial rights status">
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="mb-4">
+            <label for="tags" class="form-label">Tags (Comma-separated)</label>
+            <input type="text" class="form-control" id="tags" name="tags" value="{{ item.tags if item else 'AI Video, Commercial, 4K, Runway' }}" placeholder="Cyberpunk, High Definition, 3D">
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25">
+            <a href="{{ url_for('creator.dashboard') }}" class="btn btn-glass">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow px-4">
+              {% if item %}Update Project{% else %}Publish to Portfolio{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('btnAIEnhance')?.addEventListener('click', async () => {
+  const title = document.getElementById('projectTitle').value || 'AI Visual Campaign';
+  const category = document.getElementById('category').value;
+  const tools = document.getElementById('aiToolsUsed').value;
+  const notes = document.getElementById('description').value;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  const btn = document.getElementById('btnAIEnhance');
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enhancing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/portfolio/ai-enhance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ title, category, tools, notes })
+    });
+    const data = await res.json();
+    if (data.success && data.data) {
+      document.getElementById('description').value = data.data.enhanced_description;
+      if (data.data.suggested_tags) {
+        document.getElementById('tags').value = data.data.suggested_tags;
+      }
+      if (data.data.workflow_breakdown) {
+        document.getElementById('workflowStages').value = data.data.workflow_breakdown;
+      }
+    }
+  } catch (err) {
+    console.error('AI enhance failed:', err);
+  } finally {
+    btn.innerHTML = '<i class="bi bi-magic text-warning me-1"></i> AI Description Assistant';
+    btn.disabled = false;
+  }
+});
+</script>
+{% endblock %}

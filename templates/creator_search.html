@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Top AI Content Creators — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Search Header -->
+  <div class="text-center mb-5">
+    <h1 class="display-6 fw-bold text-white mb-2">Discover Elite AI Creators</h1>
+    <p class="text-muted mx-auto" style="max-width: 650px;">
+      Filter generative directors, prompt engineers, and 3D visual artists across Runway Gen-3, Midjourney v6, Kling AI, and custom LoRA pipelines.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Sidebar Filters -->
+    <div class="col-lg-3">
+      <div class="glass-card p-4 sticky-top" style="top: 80px; z-index: 10;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-funnel text-primary me-2"></i> Filters</h5>
+          <a href="{{ url_for('creator.list_creators') }}" class="small text-danger text-decoration-none">Clear All</a>
+        </div>
+
+        <form method="GET" action="{{ url_for('creator.list_creators') }}" id="creatorFilterForm">
+          
+          <!-- Search Keywords -->
+          <div class="mb-3">
+            <label class="form-label">Search Query</label>
+            <input type="text" class="form-control form-control-sm" name="q" value="{{ query }}" placeholder="Name, keyword, bio...">
+          </div>
+
+          <!-- Specialization -->
+          <div class="mb-3">
+            <label class="form-label">Specialization</label>
+            <select class="form-select form-select-sm" name="specialization" onchange="this.form.submit()">
+              <option value="">All Specializations</option>
+              <option value="Commercial Ads" {% if specialization_filter == 'Commercial Ads' %}selected{% endif %}>Commercial Ads</option>
+              <option value="3D Motion" {% if specialization_filter == '3D Motion' %}selected{% endif %}>3D Motion Showcase</option>
+              <option value="Fashion" {% if specialization_filter == 'Fashion' %}selected{% endif %}>Fashion &amp; Apparel</option>
+              <option value="Gaming" {% if specialization_filter == 'Gaming' %}selected{% endif %}>Gaming &amp; Concept Art</option>
+            </select>
+          </div>
+
+          <!-- AI Tool Filter -->
+          <div class="mb-3">
+            <label class="form-label">AI Tool / Engine</label>
+            <select class="form-select form-select-sm" name="tool" onchange="this.form.submit()">
+              <option value="">Any Tool</option>
+              <option value="Runway" {% if tool_filter == 'Runway' %}selected{% endif %}>Runway Gen-3</option>
+              <option value="Midjourney" {% if tool_filter == 'Midjourney' %}selected{% endif %}>Midjourney v6</option>
+              <option value="Kling" {% if tool_filter == 'Kling' %}selected{% endif %}>Kling AI</option>
+              <option value="ElevenLabs" {% if tool_filter == 'ElevenLabs' %}selected{% endif %}>ElevenLabs Voice</option>
+              <option value="Blender" {% if tool_filter == 'Blender' %}selected{% endif %}>Blender AI</option>
+            </select>
+          </div>
+
+          <!-- Experience Level -->
+          <div class="mb-3">
+            <label class="form-label">Experience</label>
+            <select class="form-select form-select-sm" name="experience" onchange="this.form.submit()">
+              <option value="">All Experience Levels</option>
+              <option value="Expert" {% if exp_filter == 'Expert' %}selected{% endif %}>Expert (5+ yrs)</option>
+              <option value="Intermediate" {% if exp_filter == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+              <option value="Beginner" {% if exp_filter == 'Beginner' %}selected{% endif %}>Beginner</option>
+              <option value="Pro Agency" {% if exp_filter == 'Pro Agency' %}selected{% endif %}>Agency Studio</option>
+            </select>
+          </div>
+
+          <!-- Availability -->
+          <div class="mb-3">
+            <label class="form-label">Availability</label>
+            <select class="form-select form-select-sm" name="availability" onchange="this.form.submit()">
+              <option value="">Any Status</option>
+              <option value="Available" {% if avail_filter == 'Available' %}selected{% endif %}>Available Now</option>
+              <option value="Busy" {% if avail_filter == 'Busy' %}selected{% endif %}>Busy</option>
+            </select>
+          </div>
+
+          <!-- Verified Only Toggle -->
+          <div class="mb-4 form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="verified" value="true" id="verifiedSwitch" {% if verified_only %}checked{% endif %} onchange="this.form.submit()">
+            <label class="form-check-label small text-white-50" for="verifiedSwitch">
+              <i class="bi bi-patch-check-fill text-success me-1"></i> Verified Only
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary-glow btn-sm w-100">Apply Filters</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Creator Cards Grid -->
+    <div class="col-lg-9">
+      
+      <!-- Sorting & Counter Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="text-muted small">
+          Showing <span class="fw-bold text-white">{{ creators.total }}</span> AI creators
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">Sort By:</label>
+          <select class="form-select form-select-sm" style="width: auto;" onchange="location = this.value;">
+            <option value="{{ url_for('creator.list_creators', q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort='relevance') }}" {% if sort_by == 'relevance' %}selected{% endif %}>Relevance / Verified</option>
+            <option value="{{ url_for('creator.list_creators', q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort='rate_low') }}" {% if sort_by == 'rate_low' %}selected{% endif %}>Rate: Low to High</option>
+            <option value="{{ url_for('creator.list_creators', q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort='rate_high') }}" {% if sort_by == 'rate_high' %}selected{% endif %}>Rate: High to Low</option>
+            <option value="{{ url_for('creator.list_creators', q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort='newest') }}" {% if sort_by == 'newest' %}selected{% endif %}>Recently Added</option>
+          </select>
+        </div>
+      </div>
+
+      {% if creators.items %}
+        <div class="row g-4">
+          {% for creator in creators.items %}
+            <div class="col-md-6 col-xl-4">
+              <div class="glass-card p-3 h-100 d-flex flex-column glass-card-interactive position-relative">
+                
+                <!-- Shortlist Bookmark Button (Brand) -->
+                {% if current_user.is_authenticated and current_user.is_brand %}
+                  <button class="btn btn-sm btn-glass position-absolute top-0 end-0 m-3 p-1 px-2 btn-save-creator {% if creator.id in saved_creator_ids %}text-danger{% endif %}" 
+                          data-creator-id="{{ creator.id }}" 
+                          title="Save creator">
+                    <i class="bi bi-heart{% if creator.id in saved_creator_ids %}-fill{% endif %}"></i>
+                  </button>
+                {% endif %}
+
+                <!-- Creator Header -->
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <img src="{{ creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                       alt="{{ creator.display_name }}" 
+                       class="rounded-circle object-fit-cover shadow" 
+                       style="width: 56px; height: 56px;"
+                       onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                  <div>
+                    <h5 class="mb-0 text-white fw-bold">
+                      <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="text-white text-decoration-none">
+                        {{ creator.display_name }}
+                      </a>
+                    </h5>
+                    <div class="small text-muted">{{ creator.specialization or 'AI Creator' }}</div>
+                    {% if creator.verification_status == 'Verified' %}
+                      <span class="badge badge-creatora badge-verified py-0 px-2" style="font-size: 0.65rem;">
+                        <i class="bi bi-patch-check-fill"></i> Verified
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <p class="text-muted small flex-grow-1" style="line-height: 1.4;">
+                  {{ creator.bio[:110] }}{% if creator.bio|length > 110 %}...{% endif %}
+                </p>
+
+                <!-- Tools Badges -->
+                <div class="mb-3">
+                  <div class="d-flex flex-wrap gap-1">
+                    {% for tool in creator.get_tools_list()[:3] %}
+                      <span class="badge bg-black border border-secondary text-white-50" style="font-size: 0.68rem;">{{ tool }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Footer: Rates & CTA -->
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+                  <div>
+                    <span class="text-muted small d-block" style="font-size: 0.72rem;">Rates from:</span>
+                    <span class="fw-bold text-white small">${{ "%.0f"|format(creator.hourly_rate_min) }}+</span>
+                  </div>
+                  <a href="{{ url_for('creator.public_profile', creator_id=creator.id) }}" class="btn btn-primary-glow btn-sm">
+                    View Portfolio &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if creators.pages > 1 %}
+          <div class="d-flex justify-content-center mt-5">
+            <nav aria-label="Creator pagination">
+              <ul class="pagination pagination-sm">
+                {% if creators.has_prev %}
+                  <li class="page-item">
+                    <a class="page-link bg-dark border-secondary text-white" href="{{ url_for('creator.list_creators', page=creators.prev_num, q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort=sort_by) }}">Previous</a>
+                  </li>
+                {% endif %}
+                {% for p in creators.iter_pages() %}
+                  {% if p %}
+                    <li class="page-item {% if p == creators.page %}active{% endif %}">
+                      <a class="page-link {% if p == creators.page %}bg-primary border-primary text-white{% else %}bg-dark border-secondary text-white{% endif %}" href="{{ url_for('creator.list_creators', page=p, q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort=sort_by) }}">{{ p }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                {% if creators.has_next %}
+                  <li class="page-item">
+                    <a class="page-link bg-dark border-secondary text-white" href="{{ url_for('creator.list_creators', page=creators.next_num, q=query, specialization=specialization_filter, tool=tool_filter, experience=exp_filter, availability=avail_filter, verified=verified_only, sort=sort_by) }}">Next</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="glass-card p-5 text-center text-muted">
+          <i class="bi bi-search fs-1 d-block mb-3 text-dim"></i>
+          <h4>No Creators Match Your Filter Criteria</h4>
+          <p class="small text-dim mb-4">Try relaxing your filter parameters or search terms to explore more AI talent.</p>
+          <a href="{{ url_for('creator.list_creators') }}" class="btn btn-primary-glow btn-sm">Reset All Filters</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

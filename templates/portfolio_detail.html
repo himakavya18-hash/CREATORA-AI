@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — Portfolio Project | Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="mb-3">
+    <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="small text-muted text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i> Back to {{ item.creator.display_name }}'s Portfolio
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Media Player & Overview -->
+    <div class="col-lg-8">
+      
+      <!-- Media Stage -->
+      <div class="glass-card overflow-hidden mb-4 p-2">
+        {% if item.media_type == 'video' %}
+          <div class="ratio ratio-16x9 bg-black rounded">
+            <video src="{{ item.media_url }}" controls poster="{{ item.thumbnail_url }}" class="rounded"></video>
+          </div>
+        {% else %}
+          <img src="{{ item.media_url }}" alt="{{ item.title }}" class="img-fluid rounded w-100 object-fit-contain shadow" style="max-height: 580px; background: #000;" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80'">
+        {% endif %}
+      </div>
+
+      <!-- Description & Workflow Documentation -->
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="badge badge-creatora badge-cyan-soft mb-2">{{ item.category }}</span>
+            <h2 class="h3 fw-bold text-white mb-2">{{ item.title }}</h2>
+          </div>
+          {% if current_user.is_authenticated and current_user.id == item.creator.user_id %}
+            <div class="dropdown">
+              <button class="btn btn-glass btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
+              <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary">
+                <li><a class="dropdown-item text-white" href="{{ url_for('creator.edit_portfolio_item', item_id=item.id) }}"><i class="bi bi-pencil me-2"></i> Edit</a></li>
+                <li>
+                  <form method="POST" action="{{ url_for('creator.delete_portfolio_item', item_id=item.id) }}" onsubmit="return confirm('Delete this project?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> Delete</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+
+        <p class="text-white-50" style="line-height: 1.6;">
+          {{ item.description }}
+        </p>
+
+        <h5 class="fw-bold text-white mt-4 mb-2"><i class="bi bi-diagram-3 text-info me-2"></i> Pipeline Workflow Stages</h5>
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 text-white-50 small mb-3">
+          {{ item.workflow_stages or 'Prompt Synthesis -> Latent Inpainting -> Neural Upscaling' }}
+        </div>
+
+        <!-- Tags -->
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          {% for tag in item.get_tags_list() %}
+            <span class="badge bg-black border border-secondary text-dim small">#{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Specs & Commercial Licensing Assistant -->
+    <div class="col-lg-4">
+      
+      <!-- Creator Card -->
+      <div class="glass-card p-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{{ item.creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+               alt="{{ item.creator.display_name }}" 
+               class="rounded-circle shadow object-fit-cover" 
+               style="width: 52px; height: 52px;"
+               onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+          <div>
+            <h6 class="text-white fw-bold mb-0">
+              <a href="{{ url_for('creator.public_profile', creator_id=item.creator.id) }}" class="text-white text-decoration-none">
+                {{ item.creator.display_name }}
+              </a>
+              {% if item.creator.verification_status == 'Verified' %}
+                <i class="bi bi-patch-check-fill text-success ms-1 small" title="Verified Creator"></i>
+              {% endif %}
+            </h6>
+            <div class="small text-muted">{{ item.creator.specialization }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technical Specifications -->
+      <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-sliders text-primary me-2"></i> Technical Specifications</h5>
+        
+        <ul class="list-unstyled d-flex flex-column gap-2 small text-muted mb-0">
+          <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 pb-2">
+            <span>Aspect Ratio:</span>
+            <span class="text-white fw-semibold">{{ item.aspect_ratio }}</span>
+          </li>
+          <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 pb-2">
+            <span>Resolution:</span>
+            <span class="text-white fw-semibold">{{ item.resolution }}</span>
+          </li>
+          <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 pb-2">
+            <span>Output Format:</span>
+            <span class="text-white fw-semibold">{{ item.output_format }}</span>
+          </li>
+          <li class="d-flex justify-content-between border-bottom border-secondary border-opacity-25 pb-2">
+            <span>AI Tools:</span>
+            <span class="text-info fw-semibold text-end">{{ item.ai_tools_used }}</span>
+          </li>
+          <li class="d-flex justify-content-between pt-1">
+            <span>Base Model(s):</span>
+            <span class="text-white fw-semibold text-end">{{ item.models_used }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Commercial Usage & Licensing Assistant (Section 14) -->
+      <div class="glass-card p-4 border-glow">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="bi bi-shield-check text-success me-2"></i> Licensing Assistant
+          </h5>
+          <span class="badge badge-creatora badge-{{ licensing_report.status_badge }}">
+            {{ licensing_report.status }}
+          </span>
+        </div>
+
+        <p class="small text-white-50 mb-3">
+          {{ licensing_report.summary }}
+        </p>
+
+        <!-- Passed Checks -->
+        <h6 class="small text-muted text-uppercase fw-bold mb-2">Verified Compliance Points:</h6>
+        <ul class="list-unstyled small d-flex flex-column gap-1 mb-3">
+          {% for check in licensing_report.passed_checks %}
+            <li class="text-white-50"><i class="bi bi-check2 text-success me-1"></i> {{ check }}</li>
+          {% endfor %}
+        </ul>
+
+        {% if licensing_report.action_items %}
+          <h6 class="small text-muted text-uppercase fw-bold mb-2">Notice / Action Items:</h6>
+          <ul class="list-unstyled small d-flex flex-column gap-1 mb-3">
+            {% for act in licensing_report.action_items %}
+              <li class="text-warning"><i class="bi bi-exclamation-circle me-1"></i> {{ act }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 small text-dim" style="font-size: 0.72rem;">
+          {{ licensing_report.disclaimer }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

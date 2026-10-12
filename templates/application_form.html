@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Proposal — {{ brief.title }} | Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <!-- Brief Snapshot Header -->
+      <div class="glass-card p-4 mb-4 border-glow">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <div>
+            <span class="badge badge-creatora badge-cyan-soft mb-1">{{ brief.content_category }}</span>
+            <h3 class="h4 fw-bold text-white mb-1">{{ brief.title }}</h3>
+            <div class="small text-muted">Brand: {{ brief.brand.company_name }} &bull; Format: {{ brief.aspect_ratio }}</div>
+          </div>
+          <div class="text-md-end">
+            <span class="text-success fw-bold">${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</span>
+            <span class="small text-muted d-block">Budget Ceiling</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proposal Form -->
+      <div class="glass-card p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 class="h4 fw-bold text-white mb-1">Your Creative Proposal</h2>
+            <p class="text-muted small mb-0">Outline your generative pipeline, timeline, and deliverables.</p>
+          </div>
+          <button type="button" class="btn btn-glass btn-sm text-info" id="btnAIProposal">
+            <i class="bi bi-magic text-warning me-1"></i> AI Proposal Draft Assistant
+          </button>
+        </div>
+
+        <form method="POST" action="{{ url_for('application.apply_to_brief', brief_id=brief.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Proposal Text -->
+          <div class="mb-4">
+            <label for="proposalText" class="form-label">Creative Approach &amp; Deliverables Breakdown *</label>
+            <textarea class="form-control" id="proposalText" name="proposal_text" rows="6" placeholder="Explain your understanding of the brand's vision, intended generative models (e.g. Runway Gen-3, Midjourney v6), workflow steps, and what you will deliver..." required>{{ existing.proposal_text if existing else '' }}</textarea>
+            <div class="form-text text-dim">You must review and personalize generated text before final submission.</div>
+          </div>
+
+          <!-- Proposed Budget & Estimated Delivery Days -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="proposedBudget" class="form-label">Proposed Budget ($ USD) *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-success">$</span>
+                <input type="number" class="form-control" id="proposedBudget" name="proposed_budget" 
+                       value="{{ existing.proposed_budget if existing else brief.budget_min }}" 
+                       min="100" max="100000" step="50" required>
+              </div>
+              <div class="form-text text-dim">Client budget range: ${{ "%.0f"|format(brief.budget_min) }} - ${{ "%.0f"|format(brief.budget_max) }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="deliveryDays" class="form-label">Estimated Delivery Schedule (Days) *</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="deliveryDays" name="estimated_delivery_days" 
+                       value="{{ existing.estimated_delivery_days if existing else 7 }}" 
+                       min="1" max="90" required>
+                <span class="input-group-text bg-dark border-secondary text-muted">Days</span>
+              </div>
+              <div class="form-text text-dim">Expected client deadline: {{ brief.deadline.strftime('%b %d') if brief.deadline else 'Flexible' }}</div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25">
+            <a href="{{ url_for('brief.view_brief', brief_id=brief.id) }}" class="btn btn-glass">Cancel</a>
+            <button type="submit" class="btn btn-primary-glow px-4 py-2 fw-bold">
+              Submit Proposal to Brand <i class="bi bi-send ms-1"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('btnAIProposal')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btnAIProposal');
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Formulating...';
+  btn.disabled = true;
+
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  try {
+    const res = await fetch('/api/ai-proposal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ brief_id: {{ brief.id }} })
+    });
+    const data = await res.json();
+    if (data.success && data.proposal) {
+      const p = data.proposal;
+      const formattedText = 
+`${p.understanding_summary}
+
+CREATIVE APPROACH:
+${p.creative_approach}
+
+SUGGESTED WORKFLOW:
+${p.proposed_workflow}
+
+DELIVERABLES:
+${p.deliverables_breakdown}
+
+CLARIFYING QUESTIONS FOR THE BRAND:
+- ${p.clarifying_questions ? p.clarifying_questions.join('\n- ') : 'None'}
+
+WHY CHOOSE ME:
+${p.why_choose_me}`;
+
+      document.getElementById('proposalText').value = formattedText;
+      if (p.proposed_budget) {
+        document.getElementById('proposedBudget').value = p.proposed_budget;
+      }
+      if (p.timeline_days) {
+        document.getElementById('deliveryDays').value = p.timeline_days;
+      }
+    }
+  } catch (err) {
+    console.error('AI proposal generation failed:', err);
+  } finally {
+    btn.innerHTML = '<i class="bi bi-magic text-warning me-1"></i> AI Proposal Draft Assistant';
+    btn.disabled = false;
+  }
+});
+</script>
+{% endblock %}

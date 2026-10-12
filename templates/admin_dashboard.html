@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Administration — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-shield-lock text-danger me-2"></i> Platform Administration</h2>
+      <p class="text-muted small mb-0">System health, creator verification moderation, report review, and security audit logs.</p>
+    </div>
+    <span class="badge badge-creatora badge-verified"><i class="bi bi-shield-check"></i> Super Administrator</span>
+  </div>
+
+  <!-- Key System Metrics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Users</div>
+        <div class="h3 fw-bold text-white mb-0">{{ total_users }}</div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Creators</div>
+        <div class="h3 fw-bold text-warning mb-0">{{ total_creators }}</div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Brands</div>
+        <div class="h3 fw-bold text-info mb-0">{{ total_brands }}</div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Campaigns</div>
+        <div class="h3 fw-bold text-purple mb-0" style="color: #c084fc;">{{ total_briefs }}</div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Workspaces</div>
+        <div class="h3 fw-bold text-primary mb-0">{{ total_projects }}</div>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <div class="glass-card p-3 text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Completed</div>
+        <div class="h3 fw-bold text-success mb-0">{{ completed_projects }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Creator Verifications (Section 13) -->
+  <div class="glass-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-white mb-0">
+        <i class="bi bi-patch-check text-warning me-2"></i> Pending Creator Verifications ({{ pending_verifications|length }})
+      </h5>
+    </div>
+
+    {% if pending_verifications %}
+      <div class="d-flex flex-column gap-3">
+        {% for vr in pending_verifications %}
+          {% set c = vr.creator %}
+          <div class="p-3 rounded glass-card border-subtle">
+            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-3">
+                <img src="{{ c.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                     alt="Avatar" class="rounded-circle shadow object-fit-cover" style="width: 44px; height: 44px;"
+                     onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                <div>
+                  <h6 class="text-white fw-bold mb-0">
+                    <a href="{{ url_for('creator.public_profile', creator_id=c.id) }}" target="_blank" class="text-white text-decoration-none">
+                      {{ c.display_name }} <i class="bi bi-box-arrow-up-right small text-info"></i>
+                    </a>
+                  </h6>
+                  <span class="small text-muted">{{ c.user.email }} &bull; Strength: {{ c.portfolio_completeness }}%</span>
+                </div>
+              </div>
+              <span class="badge badge-creatora badge-pending">{{ vr.status }}</span>
+            </div>
+
+            <div class="p-2 rounded bg-black bg-opacity-40 text-white-50 small mb-3">
+              <div class="mb-1"><strong>Showcase Links:</strong> {{ vr.portfolio_evidence_links }}</div>
+              <div class="mb-1"><strong>Workflow Info:</strong> {{ vr.tools_workflow_info }}</div>
+              {% if vr.past_references %}<div><strong>References:</strong> {{ vr.past_references }}</div>{% endif %}
+            </div>
+
+            <!-- Review Actions Form -->
+            <form method="POST" action="{{ url_for('admin.review_verification', record_id=vr.id) }}" class="row g-2 align-items-center">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              
+              <div class="col-md-6">
+                <input type="text" class="form-control form-control-sm" name="notes" placeholder="Moderator review notes / audit comments..." required>
+              </div>
+
+              <div class="col-md-6 d-flex gap-2 justify-content-end">
+                <button type="submit" name="status" value="Verified" class="btn btn-primary-glow btn-sm">
+                  <i class="bi bi-check-lg"></i> Approve &amp; Verify
+                </button>
+                <button type="submit" name="status" value="Additional Evidence Required" class="btn btn-glass btn-sm text-warning">
+                  Request Evidence
+                </button>
+                <button type="submit" name="status" value="Rejected" class="btn btn-glass btn-sm text-danger">
+                  Reject
+                </button>
+              </div>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-4 text-muted small">
+        <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+        No pending creator verification submissions. All caught up!
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- User & Account Management (Section 25) -->
+  <div class="glass-card p-4 mb-4">
+    <h5 class="fw-bold text-white mb-3"><i class="bi bi-people text-info me-2"></i> User Directory &amp; Account Control</h5>
+    
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+        <thead>
+          <tr class="text-muted small">
+            <th>User</th>
+            <th>Role</th>
+            <th>Verified</th>
+            <th>Active Status</th>
+            <th>Joined</th>
+            <th class="text-end">Moderation Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in all_users %}
+            <tr>
+              <td>
+                <div class="text-white fw-bold small">{{ u.email }}</div>
+              </td>
+              <td>
+                <span class="badge badge-creatora {% if u.is_admin %}badge-verified{% elif u.is_brand %}badge-cyan-soft{% else %}badge-primary-soft{% endif %}">
+                  {{ u.role }}
+                </span>
+              </td>
+              <td>
+                {% if u.is_verified %}
+                  <span class="text-success small fw-semibold"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                {% else %}
+                  <span class="text-dim small">Standard</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge bg-success bg-opacity-25 text-success border border-success">Active</span>
+                {% else %}
+                  <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Suspended</span>
+                {% endif %}
+              </td>
+              <td class="text-dim small">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+              <td class="text-end">
+                {% if u.id != current_user.id %}
+                  <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-glass btn-sm py-1 px-2 {% if u.is_active %}text-danger{% else %}text-success{% endif %}">
+                      {% if u.is_active %}Suspend{% else %}Restore{% endif %}
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-dim small">Current Admin</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Security Audit Logs (Section 22) -->
+  <div class="glass-card p-4">
+    <h5 class="fw-bold text-white mb-3"><i class="bi bi-journal-text text-purple me-2"></i> Security &amp; Platform Audit Log</h5>
+    
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+        <thead>
+          <tr class="text-muted small">
+            <th>Action</th>
+            <th>Resource</th>
+            <th>Details</th>
+            <th>IP Address</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+            <tr class="small">
+              <td><span class="badge badge-creatora badge-primary-soft py-0">{{ log.action }}</span></td>
+              <td class="text-white">{{ log.resource_type }} #{{ log.resource_id or '—' }}</td>
+              <td class="text-white-50 text-truncate" style="max-width: 320px;">{{ log.details }}</td>
+              <td class="text-dim font-monospace">{{ log.ip_address }}</td>
+              <td class="text-dim">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

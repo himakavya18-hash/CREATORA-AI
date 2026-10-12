@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Incoming Proposals — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-inbox text-info me-2"></i> Creator Applications &amp; Proposals</h2>
+      <p class="text-muted small mb-0">Review creative proposals submitted across all your active campaigns.</p>
+    </div>
+    <a href="{{ url_for('brief.create_brief') }}" class="btn btn-primary-glow btn-sm">
+      <i class="bi bi-plus-circle"></i> Post New Brief
+    </a>
+  </div>
+
+  {% if applications %}
+    <div class="glass-card p-4">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+          <thead>
+            <tr class="text-muted small">
+              <th>Creator</th>
+              <th>Campaign</th>
+              <th>Quote</th>
+              <th>Timeline</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th class="text-end">Review / Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <img src="{{ app.creator.user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                         alt="Avatar" class="rounded-circle object-fit-cover shadow" style="width: 38px; height: 38px;"
+                         onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                    <div>
+                      <a href="{{ url_for('creator.public_profile', creator_id=app.creator.id) }}" class="text-white fw-bold text-decoration-none">
+                        {{ app.creator.display_name }}
+                      </a>
+                      {% if app.creator.verification_status == 'Verified' %}
+                        <i class="bi bi-patch-check-fill text-success ms-1 small" title="Verified Creator"></i>
+                      {% endif %}
+                      <div class="small text-muted" style="font-size: 0.72rem;">{{ app.creator.specialization }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="text-white small text-decoration-none text-truncate d-inline-block" style="max-width: 180px;">
+                    {{ app.brief.title }}
+                  </a>
+                </td>
+                <td class="text-success fw-bold small">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                <td class="text-muted small">{{ app.estimated_delivery_days }} Days</td>
+                <td>
+                  <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td class="text-dim small">{{ app.submitted_at.strftime('%b %d') }}</td>
+                <td class="text-end">
+                  <div class="d-flex gap-1 justify-content-end">
+                    <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="btn btn-glass btn-sm py-1 px-2" title="Inspect full proposal">
+                      Review
+                    </a>
+                    {% if app.status != 'Accepted' %}
+                      <form method="POST" action="{{ url_for('application.update_application_status', app_id=app.id, new_status='Shortlisted') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-glass btn-sm text-info py-1 px-2" title="Shortlist creator">⭐</button>
+                      </form>
+
+                      <form method="POST" action="{{ url_for('application.update_application_status', app_id=app.id, new_status='Accepted') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary-glow btn-sm py-1 px-2" title="Accept &amp; Create Workspace">Accept</button>
+                      </form>
+                    {% else %}
+                      <a href="{{ url_for('project.list_projects') }}" class="btn btn-glass btn-sm text-success py-1 px-2">
+                        Workspace &rarr;
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="glass-card p-5 text-center text-muted">
+      <i class="bi bi-inbox fs-1 d-block mb-3 text-dim"></i>
+      <h4>No Proposals Received Yet</h4>
+      <p class="small text-dim mb-4">Publish campaign briefs or invite matched creators to receive customized proposals.</p>
+      <a href="{{ url_for('brief.create_brief') }}" class="btn btn-primary-glow btn-sm">Post a Creative Campaign</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

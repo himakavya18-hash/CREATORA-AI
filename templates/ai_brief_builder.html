@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}AI Campaign Brief Generator — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div class="text-center mb-5">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3 glass-card border-glow">
+          <span class="badge badge-creatora badge-cyan-soft"><i class="bi bi-magic"></i> Gemini Powered</span>
+          <span class="small text-white-50">Natural Language to Production Brief</span>
+        </div>
+        <h1 class="display-6 fw-bold text-white mb-2">AI Campaign Brief Builder</h1>
+        <p class="text-muted mx-auto" style="max-width: 620px;">
+          Describe your creative concept in plain English. Our AI will formulate deliverables, aspect ratios, technical tool pipelines, and structured acceptance criteria.
+        </p>
+      </div>
+
+      <!-- Generator Card -->
+      <div class="glass-card p-4 p-md-5 mb-4 border-glow">
+        <form method="POST" action="{{ url_for('brief.ai_builder') }}" id="aiBriefForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-4">
+            <label for="promptInput" class="form-label fs-5 fw-bold text-white">Describe Your Campaign Idea</label>
+            <textarea class="form-control" id="promptInput" name="prompt" rows="4" placeholder="e.g. I need an AI-generated promotional video for our new organic lavender sleep mist for Instagram Reels. It should feel dreamy, serene, and photorealistic with ambient audio..." required></textarea>
+            <div class="form-text text-dim">Include the product name, desired visual mood, and primary social channels.</div>
+          </div>
+
+          <!-- Quick Starter Prompts -->
+          <div class="mb-4">
+            <span class="small text-muted d-block mb-2"><i class="bi bi-lightbulb text-warning me-1"></i> Try sample prompts:</span>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-glass text-start" onclick="setPrompt('I need a high-speed macro 4K video ad for our new radiant hyaluronic acid serum for TikTok and Instagram Reels. Clean luxury pearlescent lighting.')">
+                Skincare Video Ad (9:16)
+              </button>
+              <button type="button" class="btn btn-sm btn-glass text-start" onclick="setPrompt('We are launching a futuristic cyberpunk titanium smartwatch. Looking for a 30s 3D motion trailer with glowing holographic HUD elements for YouTube and web.')">
+                Tech Smartwatch 3D Motion
+              </button>
+              <button type="button" class="btn btn-sm btn-glass text-start" onclick="setPrompt('High-fashion surrealist editorial series featuring dynamic metallic evening gowns in a minimalist Parisian palace for our digital lookbook.')">
+                Haute Couture Fashion Series
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('brief.create_brief') }}" class="small text-muted text-decoration-none">
+              Prefer manual creation?
+            </a>
+            <button type="submit" class="btn btn-primary-glow px-4 py-3 fw-bold" id="btnGenerateBrief">
+              Generate Structured Brief <i class="bi bi-magic ms-1"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Feature Capabilities Callout -->
+      <div class="row g-3 text-muted small">
+        <div class="col-md-4">
+          <div class="p-3 rounded glass-card h-100">
+            <i class="bi bi-check-circle text-success fs-5 d-block mb-1"></i>
+            <span class="text-white fw-bold d-block mb-1">Full Field Mapping</span>
+            Pre-fills objectives, deliverables, aspect ratios, and tool suggestions.
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded glass-card h-100">
+            <i class="bi bi-shield-check text-info fs-5 d-block mb-1"></i>
+            <span class="text-white fw-bold d-block mb-1">Missing Info Warnings</span>
+            Flags missing brand guidelines, audio scripts, or packaging assets.
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded glass-card h-100">
+            <i class="bi bi-sliders text-warning fs-5 d-block mb-1"></i>
+            <span class="text-white fw-bold d-block mb-1">100% Brand Control</span>
+            Review and adjust every generated field before publishing to creators.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setPrompt(text) {
+  document.getElementById('promptInput').value = text;
+}
+</script>
+{% endblock %}

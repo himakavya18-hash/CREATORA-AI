@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}My Campaign Applications — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h3 fw-bold text-white mb-1"><i class="bi bi-send text-info me-2"></i> My Campaign Applications</h2>
+      <p class="text-muted small mb-0">Track proposal reviews, shortlisted selections, and project workspace invitations.</p>
+    </div>
+    <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-primary-glow btn-sm">
+      <i class="bi bi-search"></i> Browse Campaigns
+    </a>
+  </div>
+
+  {% if applications %}
+    <div class="glass-card p-4">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+          <thead>
+            <tr class="text-muted small">
+              <th>Campaign Brief</th>
+              <th>Brand</th>
+              <th>Quote</th>
+              <th>Timeline</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="text-white fw-bold text-decoration-none">
+                    {{ app.brief.title }}
+                  </a>
+                  {% if app.is_invitation %}
+                    <span class="badge badge-creatora badge-warning ms-1" style="font-size: 0.65rem;">Brand Invited</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">{{ app.brief.brand.company_name }}</td>
+                <td class="text-success fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                <td class="text-muted small">{{ app.estimated_delivery_days }} Days</td>
+                <td>
+                  <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% elif app.status == 'Withdrawn' %}bg-secondary text-white-50{% else %}badge-primary-soft{% endif %}">
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td class="text-dim small">{{ app.submitted_at.strftime('%b %d, %Y') }}</td>
+                <td class="text-end">
+                  {% if app.status == 'Accepted' %}
+                    <a href="{{ url_for('project.list_projects') }}" class="btn btn-primary-glow btn-sm py-1 px-2">
+                      <i class="bi bi-kanban"></i> Open Workspace
+                    </a>
+                  {% elif app.status in ['Submitted', 'Shortlisted'] %}
+                    <form method="POST" action="{{ url_for('application.update_application_status', app_id=app.id, new_status='Withdrawn') }}" class="d-inline" onsubmit="return confirm('Withdraw your application?')">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-glass btn-sm text-muted py-1 px-2" title="Withdraw proposal">
+                        Withdraw
+                      </button>
+                    </form>
+                  {% else %}
+                    <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="btn btn-glass btn-sm py-1 px-2">
+                      View Brief
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="glass-card p-5 text-center text-muted">
+      <i class="bi bi-send fs-1 d-block mb-3 text-dim"></i>
+      <h4>No Applications Submitted Yet</h4>
+      <p class="small text-dim mb-4">Discover creative briefs posted by brands and submit your personalized AI proposal.</p>
+      <a href="{{ url_for('brief.list_briefs') }}" class="btn btn-primary-glow btn-sm">Explore Creative Campaigns</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

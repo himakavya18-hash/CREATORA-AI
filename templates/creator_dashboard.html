@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Creator Dashboard — Creatora AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header with Welcome & Verification Status -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="h2 fw-bold text-white mb-0">Welcome back, {{ profile.display_name }}</h2>
+        {% if profile.verification_status == 'Verified' %}
+          <span class="badge badge-creatora badge-verified"><i class="bi bi-patch-check-fill"></i> Verified Creator</span>
+        {% elif profile.verification_status == 'Pending Review' %}
+          <span class="badge badge-creatora badge-pending"><i class="bi bi-hourglass-split"></i> Verification Pending</span>
+        {% else %}
+          <a href="{{ url_for('creator.verification') }}" class="badge badge-creatora badge-primary-soft text-decoration-none">
+            <i class="bi bi-shield-plus"></i> Get Verified
+          </a>
+        {% endif %}
+      </div>
+      <p class="text-muted small mb-0">{{ profile.headline or 'AI Artist & Content Creator' }} &bull; {{ profile.location or 'Global' }}</p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('creator.add_portfolio_item') }}" class="btn btn-primary-glow btn-sm">
+        <i class="bi bi-cloud-arrow-up"></i> Add Portfolio Project
+      </a>
+      <a href="{{ url_for('creator.public_profile', creator_id=profile.id) }}" class="btn btn-glass btn-sm">
+        <i class="bi bi-eye"></i> View Public Profile
+      </a>
+      <a href="{{ url_for('creator.edit_profile') }}" class="btn btn-glass btn-sm" title="Edit Profile">
+        <i class="bi bi-gear"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Portfolio Items</div>
+            <div class="h3 fw-bold text-white mb-0">{{ portfolio_count }}</div>
+          </div>
+          <div class="stat-icon bg-primary bg-opacity-25 text-primary">
+            <i class="bi bi-collection-play"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <a href="{{ url_for('creator.add_portfolio_item') }}" class="text-info text-decoration-none">+ Upload new project</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Applications</div>
+            <div class="h3 fw-bold text-info mb-0">{{ apps_count }}</div>
+          </div>
+          <div class="stat-icon bg-info bg-opacity-25 text-info">
+            <i class="bi bi-send-check"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="text-warning fw-semibold">{{ invitations_count }}</span> direct invitations
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Active Workspaces</div>
+            <div class="h3 fw-bold text-purple mb-0" style="color: #c084fc;">{{ active_projects|length }}</div>
+          </div>
+          <div class="stat-icon bg-purple bg-opacity-25" style="color: #a855f7;">
+            <i class="bi bi-kanban"></i>
+          </div>
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="text-success fw-semibold">{{ completed_projects_count }}</span> completed projects
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+      <div class="glass-card p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small text-uppercase fw-semibold">Profile Strength</div>
+            <div class="h3 fw-bold text-success mb-0">{{ completeness }}%</div>
+          </div>
+          <div class="stat-icon bg-success bg-opacity-25 text-success">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+        </div>
+        <div class="progress mt-2" style="height: 6px; background: rgba(255,255,255,0.08);">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ completeness }}%;" aria-valuenow="{{ completeness }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: AI Assistant & Applications -->
+    <div class="col-lg-8">
+      
+      <!-- AI Portfolio Analysis & Growth Assistant -->
+      <div class="glass-card p-4 mb-4 border-glow">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="stat-icon bg-warning bg-opacity-25 text-warning p-2" style="width: 36px; height: 36px;">
+              <i class="bi bi-robot"></i>
+            </div>
+            <h5 class="fw-bold text-white mb-0">AI Portfolio Assistant &amp; Recommendations</h5>
+          </div>
+          <span class="badge badge-creatora badge-cyan-soft">Live Analysis</span>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <h6 class="small text-muted text-uppercase fw-bold"><i class="bi bi-check2-circle text-success me-1"></i> Key Strengths</h6>
+            <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+              {% for str in ai_portfolio_analysis.strengths %}
+                <li class="text-white-50"><i class="bi bi-arrow-right-short text-success"></i> {{ str }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6 class="small text-muted text-uppercase fw-bold"><i class="bi bi-lightbulb text-warning me-1"></i> Suggested Actions</h6>
+            <ul class="list-unstyled small mb-0 d-flex flex-column gap-1">
+              {% for act in ai_portfolio_analysis.recommended_actions %}
+                <li class="text-white-50"><i class="bi bi-arrow-right-short text-warning"></i> {{ act }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Projects Workspaces -->
+      <div class="glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-kanban text-primary me-2"></i> Active Projects Workspaces</h5>
+          <a href="{{ url_for('project.list_projects') }}" class="small text-info text-decoration-none">View All Projects</a>
+        </div>
+
+        {% if active_projects %}
+          <div class="d-flex flex-column gap-3">
+            {% for proj in active_projects %}
+              <div class="p-3 rounded glass-card border-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <h6 class="text-white fw-bold mb-1">
+                    <a href="{{ url_for('project.view_workspace', project_id=proj.id) }}" class="text-white text-decoration-none">
+                      {{ proj.brief.title }}
+                    </a>
+                  </h6>
+                  <div class="small text-muted">
+                    Brand: <span class="text-white-50">{{ proj.brand.company_name }}</span> &bull; 
+                    Budget: <span class="text-success">${{ "%.0f"|format(proj.agreed_budget) }}</span> &bull; 
+                    Status: <span class="badge badge-creatora badge-primary-soft">{{ proj.status }}</span>
+                  </div>
+                </div>
+                <a href="{{ url_for('project.view_workspace', project_id=proj.id) }}" class="btn btn-primary-glow btn-sm">
+                  Open Workspace <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-inbox fs-2 d-block mb-2 text-dim"></i>
+            No active project workspaces right now. Apply for campaigns to begin collaborating!
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Applications -->
+      <div class="glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-white mb-0"><i class="bi bi-send text-info me-2"></i> Recent Applications &amp; Invitations</h5>
+          <a href="{{ url_for('application.my_applications') }}" class="small text-info text-decoration-none">View All</a>
+        </div>
+
+        {% if applications %}
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+              <thead>
+                <tr class="text-muted small">
+                  <th>Campaign Brief</th>
+                  <th>Brand</th>
+                  <th>Proposed</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for app in applications %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('brief.view_brief', brief_id=app.brief.id) }}" class="text-white fw-semibold text-decoration-none">
+                        {{ app.brief.title }}
+                      </a>
+                      {% if app.is_invitation %}
+                        <span class="badge badge-creatora badge-warning ms-1" style="font-size: 0.65rem;">Brand Invited</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ app.brief.brand.company_name }}</td>
+                    <td class="text-success small fw-bold">${{ "%.0f"|format(app.proposed_budget) }}</td>
+                    <td>
+                      <span class="badge badge-creatora {% if app.status == 'Accepted' %}badge-verified{% elif app.status == 'Shortlisted' %}badge-cyan-soft{% elif app.status == 'Rejected' %}bg-danger bg-opacity-25 text-danger border border-danger{% else %}badge-primary-soft{% endif %}">
+                        {{ app.status }}
+                      </span>
+                    </td>
+                    <td class="text-dim small">{{ app.submitted_at.strftime('%b %d') }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-file-earmark-text fs-2 d-block mb-2 text-dim"></i>
+            You haven't submitted any campaign applications yet.
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column: Analytics Chart, Recommended Briefs & Portfolio preview -->
+    <div class="col-lg-4">
+      
+      <!-- Chart.js Application Pipeline Chart -->
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-pie-chart text-purple me-1"></i> Application Pipeline</h6>
+        <div style="height: 190px;">
+          <canvas id="appPipelineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recommended Campaigns for you -->
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-stars text-warning me-1"></i> Recommended For Your Skills</h6>
+        <div class="d-flex flex-column gap-3">
+          {% for r_brief in recommended_briefs[:3] %}
+            <div class="p-3 rounded glass-card border-subtle">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="badge badge-creatora badge-cyan-soft py-0" style="font-size: 0.65rem;">{{ r_brief.content_category }}</span>
+                <span class="text-success fw-bold small">${{ "%.0f"|format(r_brief.budget_max) }}</span>
+              </div>
+              <h6 class="text-white fw-bold mb-1">
+                <a href="{{ url_for('brief.view_brief', brief_id=r_brief.id) }}" class="text-white text-decoration-none">
+                  {{ r_brief.title }}
+                </a>
+              </h6>
+              <div class="small text-muted mb-2">{{ r_brief.preferred_platform }} &bull; {{ r_brief.aspect_ratio }}</div>
+              <a href="{{ url_for('application.apply_to_brief', brief_id=r_brief.id) }}" class="btn btn-glass btn-sm w-100">
+                Quick Apply <i class="bi bi-send ms-1"></i>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Saved Campaigns -->
+      {% if saved_campaigns %}
+      <div class="glass-card p-4">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-bookmark-fill text-warning me-1"></i> Bookmarked Campaigns</h6>
+        <div class="d-flex flex-column gap-2">
+          {% for sc in saved_campaigns %}
+            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-dark border border-secondary border-opacity-25 small">
+              <a href="{{ url_for('brief.view_brief', brief_id=sc.brief.id) }}" class="text-white text-decoration-none text-truncate" style="max-width: 190px;">
+                {{ sc.brief.title }}
+              </a>
+              <span class="text-success fw-bold">${{ "%.0f"|format(sc.brief.budget_max) }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('appPipelineChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Submitted', 'Shortlisted', 'Accepted', 'Rejected'],
+        datasets: [{
+          data: [
+            {{ app_status_counts.Submitted }},
+            {{ app_status_counts.Shortlisted }},
+            {{ app_status_counts.Accepted }},
+            {{ app_status_counts.Rejected }}
+          ],
+          backgroundColor: ['#6366f1', '#06b6d4', '#10b981', '#f43f5e'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#94a3b8', font: { size: 11 } }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

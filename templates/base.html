@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Creatora AI — Premium AI Content Creator Marketplace connecting leading brands with elite generative AI artists.">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Creatora AI — AI Content Creator Marketplace{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 & Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-creatora sticky-top" id="mainNavbar">
+    <div class="container-fluid px-lg-5">
+      <a class="navbar-brand navbar-brand-gradient" href="{{ url_for('auth.home') }}">
+        <i class="bi bi-stars"></i> Creatora<span style="color: var(--accent-cyan);">AI</span>
+      </a>
+      
+      <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list fs-2"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <!-- Main Links -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('creator.list_creators') }}" id="navExploreCreators">
+              <i class="bi bi-people me-1"></i> Creators
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('brief.list_briefs') }}" id="navBrowseBriefs">
+              <i class="bi bi-briefcase me-1"></i> Campaigns
+            </a>
+          </li>
+          {% if current_user.is_authenticated and current_user.is_brand %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('brief.create_brief') }}" id="navNewBrief">
+              <i class="bi bi-plus-circle me-1"></i> Post Campaign
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-info fw-semibold" href="{{ url_for('brief.ai_builder') }}" id="navAIBrief">
+              <i class="bi bi-magic me-1"></i> AI Brief Builder
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <!-- Right Side Nav Actions -->
+        <div class="d-flex align-items-center gap-3">
+          <!-- Theme Toggle Button -->
+          <button class="btn btn-glass p-2 px-3" id="themeToggleBtn" title="Toggle Light / Dark mode" aria-label="Toggle theme">
+            <i class="bi bi-sun-fill text-warning"></i>
+          </button>
+
+          {% if current_user.is_authenticated %}
+            <!-- Notifications Icon -->
+            <a href="{{ url_for('notification.list_notifications') }}" class="btn btn-glass position-relative p-2 px-3" id="navNotificationsBtn" title="Notifications">
+              <i class="bi bi-bell"></i>
+              {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_notifications_count }}
+                </span>
+              {% endif %}
+            </a>
+
+            <!-- Messages Icon -->
+            <a href="{{ url_for('messaging.inbox') }}" class="btn btn-glass p-2 px-3" id="navMessagesBtn" title="Direct Messages">
+              <i class="bi bi-chat-dots"></i>
+            </a>
+
+            <!-- User Dropdown Menu -->
+            <div class="dropdown">
+              <button class="btn btn-glass dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{{ current_user.avatar_url or url_for('static', filename='images/default-avatar.png') }}" 
+                     alt="Avatar" 
+                     class="rounded-circle object-fit-cover" 
+                     style="width: 28px; height: 28px;"
+                     onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'">
+                <span class="d-none d-sm-inline fw-semibold">
+                  {% if current_user.is_creator and current_user.creator_profile %}
+                    {{ current_user.creator_profile.display_name }}
+                  {% elif current_user.is_brand and current_user.brand_profile %}
+                    {{ current_user.brand_profile.company_name }}
+                  {% else %}
+                    {{ current_user.email.split('@')[0] }}
+                  {% endif %}
+                </span>
+                <span class="badge badge-creatora badge-primary-soft ms-1">{{ current_user.role }}</span>
+              </button>
+              
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="background: var(--bg-surface); border: 1px solid var(--border-subtle) !important;" aria-labelledby="userMenuBtn">
+                {% if current_user.is_creator %}
+                  <li><a class="dropdown-item text-white" href="{{ url_for('creator.dashboard') }}"><i class="bi bi-speedometer2 me-2 text-primary"></i> Creator Dashboard</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('creator.public_profile', creator_id=current_user.creator_profile.id if current_user.creator_profile else 1) }}"><i class="bi bi-person-badge me-2 text-info"></i> View Public Profile</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('creator.edit_profile') }}"><i class="bi bi-pencil-square me-2 text-warning"></i> Edit Profile</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('creator.add_portfolio_item') }}"><i class="bi bi-cloud-arrow-up me-2 text-success"></i> Add Portfolio Project</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('application.my_applications') }}"><i class="bi bi-send me-2 text-purple"></i> My Applications</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('project.list_projects') }}"><i class="bi bi-kanban me-2 text-cyan"></i> My Projects</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('creator.verification') }}"><i class="bi bi-patch-check me-2 text-emerald"></i> Verification Status</a></li>
+                {% elif current_user.is_brand %}
+                  <li><a class="dropdown-item text-white" href="{{ url_for('brand.dashboard') }}"><i class="bi bi-speedometer2 me-2 text-primary"></i> Brand Dashboard</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('brand.edit_profile') }}"><i class="bi bi-building me-2 text-info"></i> Company Profile</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('brief.create_brief') }}"><i class="bi bi-plus-square me-2 text-success"></i> Post Campaign</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('brief.ai_builder') }}"><i class="bi bi-magic me-2 text-warning"></i> AI Brief Builder</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('application.my_applications') }}"><i class="bi bi-inbox me-2 text-purple"></i> Proposals Received</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('project.list_projects') }}"><i class="bi bi-kanban me-2 text-cyan"></i> Active Workspaces</a></li>
+                  <li><a class="dropdown-item text-white" href="{{ url_for('brand.saved_creators') }}"><i class="bi bi-heart me-2 text-danger"></i> Shortlisted Creators</a></li>
+                {% elif current_user.is_admin %}
+                  <li><a class="dropdown-item text-white" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-shield-lock me-2 text-danger"></i> Admin Center</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider border-secondary"></li>
+                <li><a class="dropdown-item text-white" href="{{ url_for('auth.settings') }}"><i class="bi bi-gear me-2 text-muted"></i> Account Settings</a></li>
+                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Log Out</a></li>
+              </ul>
+            </div>
+          {% else %}
+            <!-- Guest Links -->
+            <a href="{{ url_for('auth.login') }}" class="btn btn-glass" id="navLoginBtn">Log In</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary-glow" id="navRegisterBtn">
+              Get Started <i class="bi bi-arrow-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages Container -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show glass-card shadow-sm border-0 d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-{% if category == 'success' %}check-circle-fill text-success{% elif category == 'danger' %}exclamation-octagon-fill text-danger{% elif category == 'warning' %}exclamation-triangle-fill text-warning{% else %}info-circle-fill text-info{% endif %} fs-5"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Block -->
+  <main class="flex-grow-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-5 mt-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <h4 class="navbar-brand-gradient mb-3">Creatora AI</h4>
+          <p class="text-muted small">
+            The premier AI Content Creator Marketplace. Empowering generative artists and forward-thinking brands to produce world-class commercial campaigns with explainable AI matching and verified compliance.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="GitHub"><i class="bi bi-github"></i></a>
+            <a href="#" class="btn btn-glass btn-sm rounded-circle p-2" aria-label="Discord"><i class="bi bi-discord"></i></a>
+          </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-6">
+          <h6 class="text-white fw-bold mb-3">For Brands</h6>
+          <ul class="list-unstyled text-muted small d-flex flex-column gap-2">
+            <li><a href="{{ url_for('creator.list_creators') }}" class="text-decoration-none text-muted">Discover Creators</a></li>
+            <li><a href="{{ url_for('brief.create_brief') }}" class="text-decoration-none text-muted">Post a Brief</a></li>
+            <li><a href="{{ url_for('brief.ai_builder') }}" class="text-decoration-none text-muted">AI Brief Builder</a></li>
+            <li><a href="{{ url_for('auth.login') }}" class="text-decoration-none text-muted">Enterprise Workspaces</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-md-6">
+          <h6 class="text-white fw-bold mb-3">For Creators</h6>
+          <ul class="list-unstyled text-muted small d-flex flex-column gap-2">
+            <li><a href="{{ url_for('brief.list_briefs') }}" class="text-decoration-none text-muted">Browse Campaigns</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Creator Showcase</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Verification Badge</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="text-decoration-none text-muted">Licensing Assistant</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+          <h6 class="text-white fw-bold mb-3">Hackathon Showcase Demo</h6>
+          <div class="p-3 rounded glass-card text-muted small">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge badge-creatora badge-verified">Live Full-Stack</span>
+              <span class="badge badge-creatora badge-primary-soft">Gemini AI</span>
+            </div>
+            <p class="mb-1 text-white-50">Instant demo login credentials available on the login page.</p>
+            <p class="mb-0 text-dim">Powered by Flask, SQLAlchemy, Bootstrap 5 & Google Gemini.</p>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-secondary my-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
+        <div>&copy; {{ current_year }} Creatora AI Inc. All rights reserved. Create. Connect. Collaborate.</div>
+        <div class="d-flex gap-3 mt-2 mt-md-0">
+          <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
+          <a href="#" class="text-muted text-decoration-none">Terms of Service</a>
+          <a href="#" class="text-muted text-decoration-none">Commercial Licensing Guide</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
