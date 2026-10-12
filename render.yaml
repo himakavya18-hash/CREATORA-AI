@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: creatora-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_REGISTRATION_KEY
+        generateValue: true
+      - key: AI_FALLBACK_MODE
+        value: "true"
+      - key: LOW_COST_MODE
+        value: "true"
+      - key: AI_DAILY_LIMIT_PER_USER
+        value: "0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: creatora-db
+          property: connectionString
+
+databases:
+  - name: creatora-db
+    databaseName: creatora
+    user: creatora

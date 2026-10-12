@@ -129,12 +129,16 @@ def create_app(config_name=None):
 
 app = create_app()
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        # Auto-seed if database is empty
-        if User.query.count() == 0:
+# Initialize DB and seed on startup (works with gunicorn on Render too)
+with app.app_context():
+    db.create_all()
+    if User.query.count() == 0:
+        try:
             from seed import seed_database
             seed_database()
+        except Exception as e:
+            print(f"[Seed] Skipped: {e}")
+
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
