@@ -41,7 +41,6 @@
         <div class="d-grid gap-2">
           {% if current_user.is_creator %}
             <a href="{{ url_for('creator.dashboard') }}" class="btn btn-primary-glow py-2"><i class="bi bi-speedometer2 me-1"></i> Creator Dashboard</a>
-            <a href="{{ url_for('studio.video_studio') }}" class="btn btn-glass py-2"><i class="bi bi-camera-reels me-1"></i> Video Studio</a>
           {% elif current_user.is_brand %}
             <a href="{{ url_for('brand.dashboard') }}" class="btn btn-primary-glow py-2"><i class="bi bi-speedometer2 me-1"></i> Brand Dashboard</a>
             <a href="{{ url_for('brief.create_brief') }}" class="btn btn-glass py-2"><i class="bi bi-plus-circle me-1"></i> Post Campaign Brief</a>

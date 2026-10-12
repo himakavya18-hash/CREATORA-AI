@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from flask import Blueprint, current_app, jsonify, render_template, request, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 
 from models import db, PortfolioItem
@@ -15,7 +15,7 @@ studio_bp = Blueprint('studio', __name__)
 @studio_bp.route('/creator/studio')
 @creator_required
 def video_studio():
-    return render_template('creator_studio.html')
+    return redirect(url_for('creator.dashboard'))
 
 
 @studio_bp.route('/creator/studio/storyboard', methods=['POST'])
